@@ -124,7 +124,7 @@ This sections parameters are:
 **Notes**: 
 * Only one of type of connector endpoint (PREndpoint or ESEndpoint) is supported in any given time.
 
-###Mode
+### Mode
 
 The following settings set the mode in which EDE operates. There are 3 modes available in this version; _Training_, _Validate_, _Detect_
 
@@ -136,4 +136,83 @@ The following settings set the mode in which EDE operates. There are 3 modes ava
 * In case of a local Dask deployment it is advised to have at least 3 workers started (see the _Scale_ parameter in the previouse section). 
 
 ### Filter
+Once the data has been loaded by the EDE connector it is tranformed into DataFrames. The data in these Dataframes can be filtered by using the
+parameters listed bellow:
 
+* __Columns__ - listing of columns which are to remain
+* __Rows__ - Filters rows in a given bound
+    * __gd__ - Lower bound
+    * __ld__ - Upper bound
+* __DColumns__ - list of columns to be deleted (dropped)
+* __Fillna__ - fills `None` values with `0`
+* __Dropna__ - deletes columns wiith `None` values
+
+**Notes:**
+* Some machine learning models cannot deal with `None` values to this end the __Fillna__ or __Dropna__ parameters where introduced. It is important to note
+the __Dropna__ will drop any column which has at least one `None` value.
+
+### Augmentation
+
+The following parameters are used to define augmentations to be executed on the loaded dataframes. The augmentations are chained togheter as defined by the user.
+The available parameters are:
+
+* __Scaler__ - Scaling/Normalizing the data. If not defined no scaler is used
+    * __ScalerType__ - We currently support all scaler types from scikitlearn. Please consult the official [documentation](https://scikit-learn.org/stable/modules/preprocessing.html) for further details
+        * When utilizing a scikit-learn scaler we have to use the exact name of the scaler followed by its parameters. Bellow you can find an exampele utilizing the [StandardScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler):
+             ``` 
+             Scaler:
+                StandardScaler:
+                    copy: True
+                    with_mean: True
+                    with_std: True
+            ```
+* __Operations__ - set of predefined operations that can be executed
+    * __STD__ - calculates the standard deviation, excepts a name and a list of metrics to use
+    * __Mean__ - Calculates the mean, excepts a name and a list of metrics to use
+    * __Median__ - Calculates the median, excepts a name and a list of metrics to use
+    * Example usage:
+    ```
+    Operations:
+        STD:
+          - cpu_load1:
+              - node_load1_10.211.55.101:9100
+              - node_load1_10.211.55.102:9100
+              - node_load1_10.211.55.103:9100
+          - memory:
+              - node_memory_Active_anon_bytes_10.211.55.101:9100
+              - node_memory_Active_anon_bytes_10.211.55.101:9100
+              - node_memory_Active_anon_bytes_10.211.55.101:9100
+        Mean:
+          - network_flags:
+              - node_network_flags_10.211.55.101:9100
+              - node_network_flags_10.211.55.102:9100
+              - node_network_flags_10.211.55.103:9100
+          - network_out:
+              - node_network_mtu_bytes_10.211.55.101:9100
+              - node_network_mtu_bytes_10.211.55.102:9100
+              - node_network_mtu_bytes_10.211.55.103:9100
+        Median:
+          - memory_file:
+              - node_memory_Active_file_bytes_10.211.55.101:9100
+              - node_memory_Active_file_bytes_10.211.55.102:9100
+              - node_memory_Active_file_bytes_10.211.55.103:9100
+          - memory_buffered:
+              - node_memory_Buffers_bytes_10.211.55.101:9100
+              - node_memory_Buffers_bytes_10.211.55.102:9100
+              - node_memory_Buffers_bytes_10.211.55.103:9100
+    ```
+    * __RemoveFiltered__ - If set to true the metrics used dufing these operatons will be deleted, the resulting augmented columns remaining
+    * __Method__ - Excepts User defined augmentations (i.e. python functions) for feature engineering
+        * Methods should be wrapped as can bee seen in the [wrapper_add_column](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/edeuser/user_methods.py#L44) example
+        * All keyword arguments should be passable to the wrapped function
+        * Here is an example of a user defined method invocation:
+            ```
+            Method: !!python/object/apply:edeuser.user_methods.wrapper_add_columns # user defined operation
+              kwds:
+                columns: !!python/tuple [node_load15_10.211.55.101:9100, node_load15_10.211.55.102:9100]
+                column_name: sum_load15
+            ```
+    * __Categorical__ - Excepts a list of categorical columns, if not defined EDE can try to automatically detect categorical columns
+        * __OH__ - If set to True oneHot encoding is used for categorical features
+    
+    
