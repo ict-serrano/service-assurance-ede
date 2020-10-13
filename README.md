@@ -76,3 +76,64 @@ There needs to be a component which once the event has been identified tries to 
 
 ## Utilization
 
+EDE is designed around the utilization of a yaml based configuration scheme. This allows the complete configuration of the tool by the end user with limited to no intervention in the source code.
+It should be mentioned that some of these features are considered unsave as they allow the execution of arbitrary code.  
+The configuration file is split up into several categories:
+* **Connector** - Deals with connection to the data sources
+* **Mode** - Selects the mode of operation for EDE
+* **Filter** - Used for applying filtering on the data
+* **Augmentation** - User defined augmentations on the data
+* **Training** - Settings for training of the selected predictive models
+* **Detect** - Settings for the detection using a pre-trained predictive model
+* **Point** - Settings for point anomaly detection
+* **Misc** - Miscellaneous settings
+
+### Connector
+
+The current version of EDE support 3 types of data sources: _ElasticSearch_, _Prometheus_ and _CSV/Excel_. Conversely it supports also reporting mechanisms for ElasticSearch and Kafka.
+In the former case, a new index is created in ElasticSearch which contains the detected anomalies while in the latter a new Kafka topic is created where the detected anomalies are pushed.
+
+This sections parameters are:
+* _PREndpoint_ - Endpoint for fetching Prometheus data
+* _ESEndpoint_ - Endpoint for fetching ElasticSearch data
+* _MPort_ - Sets the monitoring port for the selected Endpoint (defaults to 9200)
+* _KafkaEndpoint_ - Endpoint for a pre existing Kafka deployment
+* _KafkaPort_ - Sets the Kafka port for the selected Kafka Endpoint (defaults to 9092)
+* _KafkaTopic_ - Name of the kafka topic to be used
+* _Query_ - The query string to be used for fetching data:
+    * In the case of ElasticSearch please consult the official [documentation](https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-query-string-query.html).
+    * In the case of Prometheus please consult the official [documentation](https://prometheus.io/docs/prometheus/latest/querying/basics/)
+        * For fetching all queryable data:  `{"query": '{__name__=~"node.+"}[1m]'}`
+        * For fetching specific metric data: `{ "query": 'node_disk_written_bytes_total[1m]'}`
+* _MetricsInterval_ - Metrics datapoint interval definition
+* _QSize_ -  size in MB of the data to be feteched (only if ESEndpoint is used)
+    * For no limit use `QSize: 0`
+* _Index_ - The name of the column to be set as index
+    * The column has to have unique values, by default it is set to the column denoting the time when the metric was read
+* _QDelay_ - Polling period for metrics fetching
+* _Dask_
+    * _ScheduelerEndpoint_ - Denotes the Dask scheduler endpoint
+        * If no pre-deployed Dask instance is available EDE can deploy a local Scheduler by setting this parameter to `local`
+    * _SchedulerPort_ -  Endpoint for Dask scheduler endpoint
+    * _Scale_ - Sets the number of workers if `local` scheduler is used
+    * _EnforceCheck_ - if set to true it will check if the libraries from the python environment used on each Dask worker are the same versions as the origination source
+        * If this check fails the job will exit with an error message
+        * This parameter can be omitted in the case of local deployment
+     
+
+**Notes**: 
+* Only one of type of connector endpoint (PREndpoint or ESEndpoint) is supported in any given time.
+
+###Mode
+
+The following settings set the mode in which EDE operates. There are 3 modes available in this version; _Training_, _Validate_, _Detect_
+
+* _Training_ - If set to true a Dask worker or Python process for training is started
+* _Validate_  - If set to true a Dask worker or Python process for validation is started
+* _Detect_ - If set to true a Dask worker for Python process fof Detection is started
+
+**Notes:**
+* In case of a local Dask deployment it is advised to have at least 3 workers started (see the _Scale_ parameter in the previouse section). 
+
+### Filter
+
