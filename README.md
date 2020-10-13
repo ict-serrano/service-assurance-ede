@@ -171,7 +171,7 @@ The available parameters are:
     * __Mean__ - Calculates the mean, excepts a name and a list of metrics to use
     * __Median__ - Calculates the median, excepts a name and a list of metrics to use
     * Example usage:
-    ```
+    ```yaml
     Operations:
         STD:
           - cpu_load1:
@@ -214,5 +214,120 @@ The available parameters are:
             ```
     * __Categorical__ - Excepts a list of categorical columns, if not defined EDE can try to automatically detect categorical columns
         * __OH__ - If set to True oneHot encoding is used for categorical features
-    
+
+### Training
+
+The following parameters are used to set up training mode and machine learning model selection and initialization.
+* __Type__ - Sets the type of machine learning problem. Currently supported are: __clustering__, __classification__, __hpo__ and __tpot__.
+* __Method__ - Sets the machine learning method to be used. We support all acikit-learn based models as well as other machine learning libraries which
+support scikit-learn API conventions such as: Tensorflow, Keras, LightGBM, XGBoost, CatBoost etc.
+* __Export__ - Name of the preictive model  to be exported (serialized)
+* __MethodSettings__ - Setting dependant on machine learning method selected.
+
+Example for clustering:
+
+```yaml
+# Clustering example
+Training:
+  Type: clustering
+  Method: isoforest
+  Export: clustering_1
+  MethodSettings:
+    n_estimators: 10
+    max_samples: 10
+    contamination: 0.1
+    verbose: True
+    bootstrap: True
+```
+
+Example for user defined method:
+```yaml
+# User defined clustering custom
+Training:
+  Type: clustering
+  Method: !!python/object/apply:edeuser.user_methods.user_iso
+    kwds:
+      n_estimators: 100
+      contamination: auto
+      max_features: 1
+      n_jobs: 2
+      warm_start: False
+      random_state: 45
+      bootstrap: True
+      verbose: True
+      max_samples: 1
+  Export: clustering_2
+```
+
+Example of HPO CV and Scorers:
+
+```yaml
+# For HPO methods
+Training:
+  Type: hpo
+  HPOMethod: Random  # random, grid, bayesian, tpot
+  HPOParam:
+    n_iter: 2
+    n_jobs: -1
+    refit: Balanced_Acc  # if multi metric used, refit should be metric name, mandatory
+    verbose: True
+  Method: randomforest
+  ParamDistribution:
+    n_estimators:
+      - 10
+      - 100
+    max_depth:
+      - 2
+      - 3
+  Target: target
+  Export: hpo_1
+  CV:
+    Type: StratifiedKFold  # user defined all from sklearn
+    Params:
+      n_splits: 5
+      shuffle: True
+      random_state: 5
+  Scorers:
+    Scorer_list:
+      - Scorer:
+          Scorer_name: AUC
+          skScorer: roc_auc
+      - Scorer:
+          Scorer_name: Jaccard_Index
+          skScorer: jaccard
+      - Scorer:
+          Scorer_name: Balanced_Acc
+          skScorer: balanced_accuracy
+    User_scorer1: f1_score # key is user defined, can be changed same as Scorer_name
+```
+
+Example of TPOT
+
+```yaml
+# TPOT Optimizer
+Training:
+  Type: tpot
+  TPOTParam:
+    generations: 2
+    population_size: 2
+    offspring_size: 2
+    mutation_rate: 0.9
+    crossover_rate: 0.1
+    scoring: balanced_accuracy # Scoring different from HPO check TPOT documentation
+    max_time_mins: 1
+    max_eval_time_mins: 5
+    random_state: 42
+    n_jobs: -1
+    verbosity: 2
+    config_dict: TPOT light # "TPOT light", "TPOT MDR", "TPOT sparse" or None
+    use_dask: True
+  Target: target
+  Export: tpotopt
+  CV:
+    Type: StratifiedKFold  # user defined all from sklearn
+    Params:
+      n_splits: 5
+      shuffle: True
+      random_state: 5
+```
     
