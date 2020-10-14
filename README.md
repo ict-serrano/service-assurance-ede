@@ -119,10 +119,12 @@ This sections parameters are:
     * _EnforceCheck_ - if set to true it will check if the libraries from the python environment used on each Dask worker are the same versions as the origination source
         * If this check fails the job will exit with an error message
         * This parameter can be omitted in the case of local deployment
+* _Local_ - path to csv or Excel file to be used
      
 
 **Notes**: 
 * Only one of type of connector endpoint (PREndpoint or ESEndpoint) is supported in any given time.
+* If Local is defined than it will ignore any other data.
 
 ### Mode
 
@@ -450,4 +452,86 @@ Training:
 ```
 
 **Notes:**
-* Both HPO and TPOT are heavily based around Dask and utilize Dask workers for running different hyper parameter configurations. Because of this it is recommended to utilise a pre-existent distributed Dask worker cluster. 
+* Both HPO and TPOT are heavily based around Dask and utilize Dask workers for running different hyper parameter configurations. Because of this it is recommended to utilise a pre-existent distributed Dask worker cluster.
+* In contrast to other methods TPOT return the entire pipeline not just the predictive mode.
+
+### Prediction
+
+Prediction is largely unchanged between the various EDE modes. Its parameters are:
+
+* __Method__ - Name of the predictive model type used
+* __Type__ - Specifies what type the model is (i.e. clustering, classsification, tpot etc.)
+* __Load__ - Name of the serialized predictive model to be instantiated. See the export from training.
+* __Scaler__ - Name of the scaler (if used). Once the scaler has been invoced during training the result will be serialized by EDE and can be reused for prediction.
+
+Example of a prediction:
+
+```yaml
+Detect:
+  Method: isoforest
+  Type: clustering
+  Load: clustering_1
+  Scaler: StandardScaler  # Same as for training
+```
+
+### Analysis
+
+EDE is capable of running any user defined analysis methods on the data. Users can add data exploration methods. Its parameters are:
+
+* __Analysis__
+    * __Methods__ - List of methods to be used
+        * __Method__ - Information required for instantiation of user methods (including keyword arguments)
+    * __Solo__ - If it is set to true it will run only the analysis and ignore any other Training or Prediction tasks.
+
+Example analysis implementations included in EDE are [Pearson correlation](https://github.com/DIPET-UVT/EDE-Dipet/blob/80efea55545fefb7ba6d71f4e0f18fc962a16ef5/edeuser/user_methods.py#L64) and a [Line plot](https://github.com/DIPET-UVT/EDE-Dipet/blob/80efea55545fefb7ba6d71f4e0f18fc962a16ef5/edeuser/user_methods.py#L98):
+
+```yaml
+# Analysis example
+Analysis:
+ Methods:
+   - Method: !!python/object/apply:edeuser.user_methods.wrapper_analysis_corr
+       kwds:
+         name: Pearson1
+         annot: False
+         cmap: RdBu_r
+         columns:
+           - node_load1_10.211.55.101:9100
+           - node_load1_10.211.55.102:9100
+           - node_load1_10.211.55.103:9100
+           - node_memory_Cached_bytes_10.211.55.101:9100
+           - node_memory_Cached_bytes_10.211.55.102:9100
+           - node_memory_Cached_bytes_10.211.55.103:9100
+           - time
+         location: /Users/Gabriel/Documents/workspaces/Event-Detection-Engine/edeuser/analysis
+   - Method: !!python/object/apply:edeuser.user_methods.wrapper_analysis_plot
+       kwds:
+         name: line1
+         columns:
+           - node_load1_10.211.55.101:9100
+           - node_load1_10.211.55.102:9100
+           - node_load1_10.211.55.103:9100
+           - time
+         location: /Users/Gabriel/Documents/workspaces/Event-Detection-Engine/edeuser/analysis
+ Solo: True
+```
+
+
+### Point
+
+TODO
+
+### Misc
+
+TODO
+
+## Complete example configurations
+
+* [EDE Analysis](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/1_ede_analysis.yaml)
+* [EDE Clustering](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/2_ede_clustering.yaml)
+* [EDE Clustering user defined](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/3_ede_clustering_user.yaml)
+* [EDE Clustering Prediction](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/4_ede_clustering_predict.yaml)
+* [EDE Classification](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/5_ede_classification.yaml)
+* [EDE Classification Predicton](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/6_ede_classification_predict.yaml)
+* [EDE HPO](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/7_ede_hpo.yaml)
+* [EDE TPOT](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/8_ede_tpot.yaml)
+* [EDE TPOT Predict](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/9_ede_tpot_predict.yaml)
