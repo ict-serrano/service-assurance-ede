@@ -159,7 +159,7 @@ The available parameters are:
 * __Scaler__ - Scaling/Normalizing the data. If not defined no scaler is used
     * __ScalerType__ - We currently support all scaler types from scikitlearn. Please consult the official [documentation](https://scikit-learn.org/stable/modules/preprocessing.html) for further details
         * When utilizing a scikit-learn scaler we have to use the exact name of the scaler followed by its parameters. Bellow you can find an exampele utilizing the [StandardScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html#sklearn.preprocessing.StandardScaler):
-             ``` 
+             ```yaml 
              Scaler:
                 StandardScaler:
                     copy: True
@@ -223,6 +223,7 @@ The following parameters are used to set up training mode and machine learning m
 support scikit-learn API conventions such as: Tensorflow, Keras, LightGBM, XGBoost, CatBoost etc.
 * __Export__ - Name of the preictive model  to be exported (serialized)
 * __MethodSettings__ - Setting dependant on machine learning method selected.
+* __Target__ - Denotes the ground truth column name to be used. This is mandatory in the case of classification. If no `target` is defined the last column is used instead.
 
 Example for clustering:
 
@@ -240,6 +241,23 @@ Training:
     bootstrap: True
 ```
 
+Example for classification:
+```yaml
+Training:
+  Type: classification
+  Method: randomforest
+  Export: classifier_1
+  MethodSettings:
+    n_estimators: 10
+    max_samples: 10
+    verbose: True
+    bootstrap: True
+  Target: target
+```
+
+Similar to how users can add their own implementations for augmentations it is also possible to add custom machine learning
+methods. An example implementation can be found in the edeuser [section](https://github.com/DIPET-UVT/EDE-Dipet/tree/master/edeuser), namely [user_iso](https://github.com/DIPET-UVT/EDE-Dipet/blob/6d92fe4203053b6a6cab294553b81e87bf6ba11d/edeuser/user_methods.py#L8).
+The wrapper function should contain all parameters which are necessary for the defined method and the return value should be an object which abides by scikit-learn API conventions.  
 Example for user defined method:
 ```yaml
 # User defined clustering custom
@@ -259,7 +277,82 @@ Training:
   Export: clustering_2
 ```
 
-Example of HPO CV and Scorers:
+
+#### Cross Validation
+
+EDE supports a variety of cross validation methods ([all from scikit-learn](https://scikit-learn.org/stable/modules/cross_validation.html)). The parameters are as follows:
+
+* __CV__ - If an integer is used then standard (scikit-learn) CV is used with the integer representing the number of folds.
+    * __Type__ - Type is required if __CV__ denotes a scikit-learn or user defined CV method is used.
+    * __Params__ - Parameters for CV method
+
+For defining simple __CV__ with 5 folds:
+
+`CV: 5`
+
+For defining __CV__ using a  specific method such as [StratifiedKFold](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedKFold.html?highlight=stratifiedkfold#sklearn.model_selection.StratifiedKFold):
+```yaml
+CV:
+    Type: StratifiedKFold  # user defined all from sklearn
+    Params:
+      n_splits: 5
+      shuffle: True
+      random_state: 5
+```
+
+
+#### Scoring
+
+EDE supports the inclusion of different scoring methods. These are all [scikit-learn scoring](https://scikit-learn.org/stable/modules/model_evaluation.html) methods as well as user defined scoring methods.
+The scoring functions are defined using the following parameters:
+
+* __Scorers__
+    * __Scorers_list__ - List of scoreres to be used
+        * __Scorer__
+            * __Scorer_name__ - User defined name of the scorer
+            * __skScorer__ - Scikit-learn scorer name
+In the case of user defined scorers the user has to define a key value pair; `scorer_name` and `scorer instance`.
+
+An example Scorer chain definition can be found here:
+
+```yaml
+Scorers:
+    Scorer_list:
+      - Scorer:
+          Scorer_name: AUC
+          skScorer: roc_auc
+      - Scorer:
+          Scorer_name: Jaccard_Index
+          skScorer: jaccard
+      - Scorer:
+          Scorer_name: Balanced_Acc
+          skScorer: balanced_accuracy
+    User_scorer1: f1_score # key is user defined, can be changed same as Scorer_name
+``` 
+ 
+
+#### Hyper-parameter optimization
+
+EDE also supports hyper parameter optimization methods such as: _grid_ and _random_ search, _bayesian_ search and the _tpot_ framework. The following parameters are used for HPO:
+
+* __HPOMethod__ - Name of the hyper parameter optimization to be used
+* __HPOParam__ - HPO parameters:
+    * __n_iter__ - Number of iterations. In case of Grid search this is ignored.
+    * __n_jobs__ - number of threads (`-1` for all available)
+    * __refit__ - Name of scoring metric to be used to determine the best performing hyperparameters. If multi metric is used, refit should be a metric name (mandatory)
+    * __verbose__ - If set to true, it outputs metrics about each iteration
+* __ParamDistribution__ - should contain a dictionary which has as a key the parameter name and a list (or python code which generates a list according to a particular distribution) which should be used:
+    ```yaml
+    ParamDistribution:
+        n_estimators:
+          - 10
+          - 100
+        max_depth:
+          - 2
+          - 3
+    ```  
+
+Example of HPO including CV and Scorers examples:
 
 ```yaml
 # For HPO methods
@@ -330,4 +423,6 @@ Training:
       shuffle: True
       random_state: 5
 ```
-    
+
+**Notes:**
+* Both HPO and TPOT are heavily based around Dask and utilize Dask workers for running different hyper parameter configurations. Because of this it is recommended to utilise a pre-existent distributed Dask worker cluster. 
