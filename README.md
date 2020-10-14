@@ -394,6 +394,31 @@ Training:
     User_scorer1: f1_score # key is user defined, can be changed same as Scorer_name
 ```
 
+
+#### TPOT
+
+[TPOT](http://epistasislab.github.io/tpot/) is an automated machine learning framework designed around scikit-learn (and nay other framework which conforms to the scikit-learn API conventions). In contrast to other such tools it does not focus solely on the hyper-parameters
+of machine learning models but it tries to optimize the pre and postprocessing methods as well. It does this by generating scikit-learn [pipelines](https://scikit-learn.org/stable/modules/generated/sklearn.pipeline.Pipeline.html).
+The optimizations are based around a Genetic Programming stochastic global search procedure. TPOT parameters are as follows:
+
+* __TPOTParam__
+    * __generations__ - Number of generations to run
+    * __population_size__ - Size of the population (candidate configurations)
+    * __offspring_size__ - Number of new members added to a population between each generation
+    * __mutation_rate__ - Rate of mutation to be used by the genetic algorithm
+    * __crossover_rate__ - Value used in defining the crossover used when generating new offsprings
+    * __scoring__ - Scoring functon to be used, it is different than scikit-learn, see TPOT documentation for details about [TPOT scoring](http://epistasislab.github.io/tpot/using/#scoring-functions).
+    * __max_time_mins__ - Limits the time for computing a generation
+    * __max_eval_time_mins__ - Limits the amount of time for evaluating a pipeline.
+    * __random_state__ - Random seed so that it enables consistency between experiments.
+    * __n_Jobs__ - Number of concurent jobs. If set to `-1` it will enable unlimited number of potential jobs
+    * __verbosity__ - Logging detail
+    * __config_dict__ -  This sets the amount of detail and methods to add to the pipelines from a population. Possible values are:
+        * Default - Includes all scikit-learn methods
+        * TPOT light - restricted range of methods
+        * TPTO MDR - Extended feature selectors and Multi dimensional reduction models
+    * __use_dask__ - Use Dask backend to run phenotypes from the population (i.e each Dask worker runs a phenotype)
+    
 Example of TPOT
 
 ```yaml
