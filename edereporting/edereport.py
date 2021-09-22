@@ -19,6 +19,7 @@ limitations under the License.
 from fpdf import FPDF
 from glob import glob
 import argparse
+import os
 
 
 class EDEPDF(FPDF):
@@ -204,8 +205,9 @@ class EDEPDF(FPDF):
 
 
 if __name__ == "__main__":
-    analysis_folder = "/Users/Gabriel/Documents/workspaces/Dipet-EDE/edeuser/analysis/*.png"
-    model_folder = "/Users/Gabriel/Documents/workspaces/Dipet-EDE/models/*.png"
+    # Get analysis folder, go up one directory and add edeuser/analysis and models respectively
+    analysis_folder = f"{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'edeuser/analysis'))}/*.png"
+    model_folder = f"{os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'models'))}/*.png"
     parser = argparse.ArgumentParser(description='EDE Report Generator')
     parser.add_argument('--report', type=str, nargs='?',
                         help='Define type of report; analysis, classification, clustering')
