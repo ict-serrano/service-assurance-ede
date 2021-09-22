@@ -1,5 +1,5 @@
 """
-Copyright 2019, Institute e-Austria, Timisoara, Romania
+Copyright 2021, Institute e-Austria, Timisoara, Romania
     http://www.ieat.ro/
 Developers:
  * Gabriel Iuhasz, iuhasz.gabriel@info.uvt.ro
@@ -22,7 +22,7 @@ from addict import Dict
 from edeconfig import readConf
 from edelogger import logger
 from datetime import datetime
-from edengine import aspideedengine
+from edengine import edengine
 from util import getModelList, check_dask_settings
 import time
 from dask.distributed import Client, LocalCluster
@@ -61,6 +61,8 @@ def main(argv,
     settings.qinterval = None
     settings.fillna = None
     settings.dropna = None
+    settings.filterwild = None
+    settings.filterlow = None
     settings.local = None
     settings.train = None
     settings.hpomethod = None
@@ -78,6 +80,14 @@ def main(argv,
     settings.cv = None
     settings.trainscore = None
     settings.scorer = None
+    settings.verbosecv = None
+    settings.LearningCurve = None
+    settings.ValidationCurve = None
+    settings.PrecisionRecallCurve = None
+    settings.ROCAUC = None
+    settings.RFE = None
+    settings.DecisionBoundary = None
+    settings.PredAnalysis = None
     settings.returnestimators = None
     settings.analysis = None
     settings.validate = None
@@ -108,7 +118,7 @@ def main(argv,
     dask_backend = False
 
     try:
-        opts, args = getopt.getopt(argv, "he:tf:m:vx:d:lq:", ["endpoint=", "file=", "method=", "export=", "detect=", "query="])  # todo:expand comand line options
+        opts, args = getopt.getopt(argv, "he:tf:m:vx:d:lq:", ["endpoint=", "file=", "method=", "export=", "detect=", "query="])  # todo:expand command line options
     except getopt.GetoptError:
         logger.warning('[%s] : [WARN] Invalid argument received exiting', datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
         print("ede.py -f <filelocation>, -t -m <method> -v -x <modelname>")
@@ -192,14 +202,23 @@ def main(argv,
                 readCnf['Connector']['ESEndpoint']))
             settings['esendpoint'] = readCnf['Connector']['ESEndpoint']
         except:
-            if readCnf['Connector']['PREndpoint'] is None:  # todo; now only available in config file not in commandline
-                logger.error('[%s] : [ERROR] ES and PR backend Enpoints not set in conf or commandline!',
-                                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-                sys.exit(1)
-            else:
+
+            try:
                 settings['prendpoint'] = readCnf['Connector']['PREndpoint']
-                logger.info('[{}] : [INFO] Monitoring PR Endpoint set to {}'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
-                            settings["prendpoint"]))
+                logger.info('[{}] : [INFO] Monitoring PR Endpoint set to {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                    settings["prendpoint"]))
+            except Exception:
+                settings['prendpoint'] = None
+
+            # if readCnf['Connector']['PREndpoint'] is None:  # todo; now only available in config file not in commandline
+            #     logger.error('[%s] : [ERROR] ES and PR backend Enpoints not set in conf or commandline!',
+            #                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+            #     sys.exit(1)
+            # else:
+            #     settings['prendpoint'] = readCnf['Connector']['PREndpoint']
+            #     logger.info('[{}] : [INFO] Monitoring PR Endpoint set to {}'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+            #                 settings["prendpoint"]))
     else:
         logger.info('[%s] : [INFO] ES Backend Enpoint set to %s',
                             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['esendpoint'])
@@ -209,15 +228,19 @@ def main(argv,
             logger.info('[%s] : [INFO] From timestamp set to %s',
                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
                         settings["from"])
-        except:
-            logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['prendpoint']))
+        except Exception:
+            # logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(
+            #     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['prendpoint']))
             if settings['prendpoint'] is not None:
-                logger.info('[{}] : [INFO] PR Backedn endpoint set to {}'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['prendpoint']))
+                pass
+                # logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['prendpoint']))
             else:
-                logger.error('[%s] : [ERROR] From timestamp not set in conf or commandline!',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-                sys.exit(1)
+                try:
+                    readCnf['Connector']['Local']  # todo check if local exists in conf (elegant solution is needed)
+                except Exception:
+                    logger.error('[%s] : [ERROR] From timestamp not set in conf or commandline!',
+                             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+                    sys.exit(1)
     else:
         logger.info('[%s] : [INFO] From timestamp set to %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['from'])
@@ -232,9 +255,12 @@ def main(argv,
             if settings['prendpoint'] is not None:
                 pass
             else:
-                logger.error('[%s] : [ERROR] To timestamp not set in conf or commandline!',
-                                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-                sys.exit(1)
+                try:
+                    readCnf['Connector']['Local']  # todo check if local exists in conf (elegant solution is needed)
+                except Exception:
+                    logger.error('[%s] : [ERROR] To timestamp not set in conf or commandline!',
+                                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+                    sys.exit(1)
     else:
         logger.info('[%s] : [INFO] To timestamp set to %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['to'])
@@ -324,15 +350,20 @@ def main(argv,
         except:
             logger.warning('[{}] : [WARN] Dask scheduler  set to default values'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
             dask_backend = False
+
     if settings['local'] is None:
         try:
             settings['local'] = readCnf['Connector']['Local']
             logger.info('[{}] : [INFO] Local datasource set to {}'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['local']))
-        except:
+        except Exception:
             logger.info('[{}] : [INFO] Local datasource set to default'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
             settings['local'] = None
+            if settings['esendpoint'] is None and settings['prendpoint'] is None:
+                logger.error('[{}] : [ERROR] No valid datasource set! Exiting ...'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                sys.exit(1)
     else:
         logger.info('[{}] : [INFO] Local datasource set to {}'.format(
             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['local']))
@@ -413,6 +444,14 @@ def main(argv,
     else:
         logger.info('[%s] : [INFO] Detect Type is set to %s from command line',
                             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings["detecttype"])
+
+    if settings['PredAnalysis'] is None:
+        try:
+            settings['PredAnalysis'] = readCnf['Detect']['Analysis']
+            logger.info('[{}] : [INFO] Detect Analysis is set to {} from conf'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings["PredAnalysis"]))
+        except Exception:
+            settings['PredAnalysis'] = False
 
     if settings["trainMethod"] is None:
         try:
@@ -552,6 +591,62 @@ def main(argv,
         except:
             logger.info('[{}] : [INFO] No Training scorers defined'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+
+    if settings.verbosecv is None:
+        try:
+            settings.verbosecv = readCnf['Training']['Verbose']
+            logger.info('[{}] : [INFO] Training verbose CV set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
+
+    if settings.LearningCurve is None:
+        try:
+            settings.LearningCurve = readCnf['Training']['LearningCurve']
+            logger.info('[{}] : [INFO] Training Learning Curve set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
+
+    if settings.ValidationCurve is None:
+        try:
+            settings.ValidationCurve = readCnf['Training']['ValidationCurve']
+            logger.info('[{}] : [INFO] Training Validation Curve set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
+
+    if settings.PrecisionRecallCurve is None:
+        try:
+            settings.PrecisionRecallCurve = readCnf['Training']['PrecisionRecallCurve']
+            logger.info('[{}] : [INFO] Training Precision Recall Curve set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
+
+    if settings.ROCAUC is None:
+        try:
+            settings.ROCAUC = readCnf['Training']['ROCAUC']
+            logger.info('[{}] : [INFO] Training ROC-AUC Curve set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
+
+    if settings.RFE is None:
+        try:
+            settings.RFE = readCnf['Training']['RFE']
+            logger.info('[{}] : [INFO] Training Recursive Feature Elimination set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
+
+    if settings.DecisionBoundary is None:
+        try:
+            settings.DecisionBoundary = readCnf['Training']['DecisionBoundary']
+            logger.info('[{}] : [INFO] Training Decision Boundary set'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            pass
 
     if settings.returnestimators is None:
         try:
@@ -705,6 +800,30 @@ def main(argv,
         logger.info('[{}] : [INFO] Drop None not set, skipping ...'.format(
             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
         settings['dropna'] = False
+
+    try:
+        if readCnf['Filter']['LowVariance']:
+            settings['filterlow'] = readCnf['Filter']['LowVariance']
+        else:
+            settings['filterlow'] = False
+        logger.info('[{}] : [INFO] Low Variance filter set to {}'.format(
+            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), readCnf['Filter']['LowVariance']))
+    except Exception:
+        logger.info('[{}] : [INFO] Low Variance filter not set, skipping ...'.format(
+            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        settings['filterlow'] = False
+
+    try:
+        if readCnf['Filter']['DWild']:
+            settings['filterwild'] = readCnf['Filter']['DWild']
+        else:
+            settings['filterwild'] = False
+        logger.info('[{}] : [INFO] Drop based on wildcard  set to {}'.format(
+            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), readCnf['Filter']['DWild']))
+    except:
+        logger.info('[{}] : [INFO] Drop based on wildcard not set, skipping ...'.format(
+            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        settings['filterwild'] = False
 
     if settings["checkpoint"] is None:
         try:
@@ -885,7 +1004,7 @@ if __name__ == "__main__":
         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
         sys.exit(0)
     signal(SIGINT, handler)
-    SchedulerEndpoint, Scale, SchedulerPort, EnforceCheck = check_dask_settings()  # Todo Better solution
+    SchedulerEndpoint, Scale, SchedulerPort, EnforceCheck = check_dask_settings(cnf=sys.argv[1:])  # Todo Better solution
     if SchedulerEndpoint:
         if SchedulerEndpoint == "local":
             cluster = LocalCluster(n_workers=int(Scale))

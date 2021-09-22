@@ -1,5 +1,5 @@
 """
-Copyright 2019, Institute e-Austria, Timisoara, Romania
+Copyright 2021, Institute e-Austria, Timisoara, Romania
     http://www.ieat.ro/
 Developers:
  * Gabriel Iuhasz, iuhasz.gabriel@info.uvt.ro
@@ -22,8 +22,8 @@ from .threadRun import EdeDetectThread, EdePointThread, EdeTrainThread
 from .multiprocRun import EdeDetectProcess, EdePointProcess, EdeTrainProcess
 from time import sleep
 import tempfile
-from edescikit import edescilearncluster as sdmon
-from edescikit import edescilearnclassification as cdmon
+from edescikit import edescilearncluster as sede
+from edescikit import edescilearnclassification as cede
 from pyQueryConstructor import QueryConstructor
 from dataformatter import DataFormatter
 import subprocess
@@ -73,10 +73,18 @@ class EDEngine:
         self.detectmethod = settingsDict['detectMethod']
         self.cv = settingsDict['cv']
         self.scorers = settingsDict['scorer']
+        self.verbosecv = settingsDict['verbosecv']
         self.trainscore = settingsDict['trainscore']
         self.returnestimators = settingsDict['returnestimators']
         self.analysis = settingsDict['analysis']
         self.validate = settingsDict['validate']
+        self.learningcurve = settingsDict['LearningCurve']
+        self.validationcurve = settingsDict['ValidationCurve']
+        self.prc = settingsDict["PrecisionRecallCurve"]
+        self.rocauc = settingsDict["ROCAUC"]
+        self.rfe = settingsDict["RFE"]
+        self.dboundary = settingsDict["DecisionBoundary"]
+        self.pred_analysis = settingsDict['PredAnalysis']
         self.export = settingsDict['export']
         self.detect = settingsDict['detect']
         self.sload = settingsDict['sload']
@@ -112,7 +120,9 @@ class EDEngine:
         self.rfilter = settingsDict['rfilter']
         self.dfilter = settingsDict['dfilter']
         self.fillnan = settingsDict['fillna']
+        self.filterlow = settingsDict['filterlow']
         self.dropnan = settingsDict['dropna']
+        self.filterwild = settingsDict['filterwild']
         self.checkpoint = settingsDict['checkpoint']
         self.interval = settingsDict['interval']
         self.delay = settingsDict['delay']
@@ -657,16 +667,28 @@ class EDEngine:
                     self.dformat.dropColumns(df, cfilterparse(self.dfilter), cp=False)
                 else:
                     df = self.dformat.dropColumns(df, cfilterparse(self.dfilter))
+        if self.filterlow:
+            self.dformat.filterLowVariance(df)
         if self.fillnan:
             self.dformat.fillMissing(df)
         if self.dropnan:
             self.dformat.dropMissing(df)
 
-        # if index:
-        #     df.set_index(index, inplace=True)
-
         if df_index is not None:
             df.set_index(df_index, inplace=True)
+
+        if self.filterwild:
+            if "Regex" not in self.filterwild.keys():
+                logger.error('[%s] : [ERROR] Missing parameters for filtering via wildcard exiting ...',
+                               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+                sys.exit(1)
+            if "Keep" in self.filterwild.keys():
+                df = self.dformat.filterWildcard(df, wild_card=self.filterwild['Regex'], keep=self.filterwild['Keep'])
+            else:
+                df = self.dformat.filterWildcard(df, wild_card=self.filterwild['Regex'])
+
+        # if index:
+        #     df.set_index(index, inplace=True)
 
         if self.categorical is None:
             logger.info('[%s] : [INFO] Skipping categorical feature conversion',
@@ -686,7 +708,7 @@ class EDEngine:
             df.to_csv(os.path.join(self.dataDir, pr_f))
         logger.info('[{}] : [INFO] Filtered data shape {}'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), df.shape))
-        if df.shape[0] is 0:
+        if df.shape[0] == 0:
             logger.error('[{}] : [ERROR] Empty dataframe rezulted after filtering! Exiting!'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
             sys.exit(1)
@@ -738,18 +760,18 @@ class EDEngine:
             if self.traintype == 'clustering':
                 logger.info('[{}] : [INFO] Training clusterer ...'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
-                if self.trainmethod == 'isoforest':  # TODO: parse method settings corectly
-                    disofrst = sdmon.SciCluster(self.modelsDir)
+                if self.trainmethod == 'isoforest':  # TODO: merge pyod models from private dev repo
+                    disofrst = sede.SciCluster(self.modelsDir)
                     isofrstmodel = disofrst.dask_isolationForest(settings=self.methodSettings, mname=self.export, data=asudata)
                 elif self.trainmethod == 'sdbscan':
-                    dsdbscan = sdmon.SciCluster(self.modelsDir)
+                    dsdbscan = sede.SciCluster(self.modelsDir)
                     dbscanmodel = dsdbscan.dask_sdbscanTrain(settings=self.methodSettings, mname=self.export, data=asudata)
                 else:
                     if not isinstance(self.trainmethod, str):
-                        print(self.trainmethod)
+                        # print(self.trainmethod)
                         logger.info('[{}] : [INFO] Detected user defined method, initializing ...'.format(
                             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
-                        umeth = sdmon.SciCluster(self.modelsDir)
+                        umeth = sede.SciCluster(self.modelsDir)
                         umod = umeth.dask_clusterMethod(cluster_method=self.trainmethod, mname=self.export, data=asudata)
                     else:
                         logger.error('[{}] : [ERROR] Unknown Clustering method {}'.format(
@@ -761,11 +783,14 @@ class EDEngine:
             elif self.traintype == 'classification':
                 logger.info('[{}] : [INFO] Training classifier ...'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
-                classede = cdmon.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
-                                                    training=self.trainingSet, validation=self.validationSet,
-                                                    validratio=self.validratio, compare=self.compare, cv=self.cv,
-                                                   trainscore=self.trainscore, scorers=self.scorers,
-                                                   returnestimators=self.returnestimators)
+                classede = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
+                                                  training=self.trainingSet, validation=self.validationSet,
+                                                  validratio=self.validratio, compare=self.compare, cv=self.cv,
+                                                  trainscore=self.trainscore, scorers=self.scorers,
+                                                  returnestimators=self.returnestimators,
+                                                  verbose=self.verbosecv, learningcurve=self.learningcurve,
+                                                  validationcurve=self.validationcurve, prc=self.prc,
+                                                  rocauc=self.rocauc, rfe=self.rfe, dboundary=self.dboundary)
                 clf = classede.dask_classifier(settings=self.methodSettings, mname=self.export, X=asudata, y=y,
                                                classification_method=self.trainmethod)
 
@@ -774,26 +799,26 @@ class EDEngine:
             elif self.traintype == 'hpo':
                 logger.info('[{}] : [INFO] Stating HPO.'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
-                classede = cdmon.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
-                                                   training=self.trainingSet, validation=self.validationSet,
-                                                   validratio=self.validratio, compare=self.compare, cv=self.cv,
-                                                   trainscore=self.trainscore, scorers=self.scorers,
-                                                   returnestimators=self.returnestimators)
+                classede = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
+                                                  training=self.trainingSet, validation=self.validationSet,
+                                                  validratio=self.validratio, compare=self.compare, cv=self.cv,
+                                                  trainscore=self.trainscore, scorers=self.scorers,
+                                                  returnestimators=self.returnestimators)
                 clf = classede.dask_hpo(param_dist=self.ParamDistribution,
                                         mname="w",
                                         X=pr_data,
                                         y=y,
                                         hpomethod=self.hpomethod,
-                                        hpoparam = self.hpoparam,
+                                        hpoparam=self.hpoparam,
                                         classification_method=self.trainmethod)
                 logger.info('[{}] : [INFO] HPO Completed.'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
             elif self.traintype == 'tpot':
-                classede = cdmon.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
-                                                   training=self.trainingSet, validation=self.validationSet,
-                                                   validratio=self.validratio, compare=self.compare, cv=self.cv,
-                                                   trainscore=self.trainscore, scorers=self.scorers,
-                                                   returnestimators=self.returnestimators)
+                classede = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
+                                                  training=self.trainingSet, validation=self.validationSet,
+                                                  validratio=self.validratio, compare=self.compare, cv=self.cv,
+                                                  trainscore=self.trainscore, scorers=self.scorers,
+                                                  returnestimators=self.returnestimators)
                 clf = classede.dask_tpot(self.tpot,
                                          X=pr_data,
                                          y=y)
@@ -832,15 +857,15 @@ class EDEngine:
     def __analysisMethod(self, method,
                           data):
         try:
-            logger.info('[{}] : [INFO] Loading user defined analysis'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+            logger.info('[{}] : [INFO] Loading user defined analysis: {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), method.__name__))
             data_op = method(data)
         except Exception as inst:
-            logger.error('[{}] : [ERROR] Failed to load user analysis with {} and {}'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            logger.error('[{}] : [ERROR] Failed to load user analysis {} with {} and {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), method.__name__, type(inst), inst.args))
             return data
-        logger.info('[{}] : [INFO] Finished user analysis'.format(
-            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        logger.info('[{}] : [INFO] Finished user analysis: {}'.format(
+            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), method.__name__))
         return data_op
 
     def trainMethod(self):
@@ -974,7 +999,7 @@ class EDEngine:
                                    'algorithm': 'auto', 'leaf_size': 30, 'p': 0.2, 'n_jobs': 1}
                         logger.info('[%s] : [INFO] Using settings for sdbscan -> %s ',
                                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), str(opt))
-                        db = sdmon.SciCluster(self.modelsDir)
+                        db = sede.SciCluster(self.modelsDir)
                         dbmodel = db.sdbscanTrain(settings=opt, mname=self.export, data=udata)
                     elif self.method == 'isoforest':
                         opt = self.methodSettings
@@ -983,7 +1008,7 @@ class EDEngine:
                                    'max_features': 1.0, 'n_jobs': -1, 'random_state': None, 'verbose': 0}
                         logger.info('[%s] : [INFO] Using settings for isoForest -> %s ',
                                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), str(opt))
-                        isofrst = sdmon.SciCluster(self.modelsDir)
+                        isofrst = sede.SciCluster(self.modelsDir)
                         isofrstmodel = isofrst.isolationForest(settings=opt, mname=self.export, data=udata)
                     # Once training finished set training to false
                     self.train = False
@@ -994,9 +1019,9 @@ class EDEngine:
                     sys.exit(1)
             elif self.type == 'classification':
                 # validratio=settings['validratio'], compare=True)
-                classdmon = cdmon.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
-                                                    training=self.trainingSet, validation=self.validationSet,
-                                                    validratio=self.validratio, compare=self.compare)
+                classdmon = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
+                                                   training=self.trainingSet, validation=self.validationSet,
+                                                   validratio=self.validratio, compare=self.compare)
                 if self.method in self.allowefMethodsClassification:
                     if self.trainingSet is None:
                         logger.info('[%s] : [INFO] Started Training Set generation ... ',
@@ -1184,7 +1209,7 @@ class EDEngine:
                         asudata = sudata
                     if checkpoint:
                         asudata.to_csv(os.path.join(self.dataDir, 'pr_data_detect_augmented.csv'))
-                    smodel = sdmon.SciCluster(modelDir=self.modelsDir)
+                    smodel = sede.SciCluster(modelDir=self.modelsDir, pred_analysis=self.pred_analysis)
                     anomalies = smodel.dask_detect(self.detectmethod, self.load, data=asudata)
                     if not anomalies['anomalies']:
                         logger.info('[{}] : [INFO] No anomalies detected with {}'.format(
@@ -1196,7 +1221,6 @@ class EDEngine:
                         logger.info('[{}] : [DEBUG] Reporting detected anomalies: {}'.format(
                             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), anomalies))
                         self.reportAnomaly(anomalies, dask=True)
-                        # print(anomalies)
                         sleep(parseDelay(self.delay))
             elif self.detecttype == 'classification':
                 logger.info('[{}] : [INFO] Detection with classifier started. Getting data ...'.format(
@@ -1235,11 +1259,12 @@ class EDEngine:
                         asudata = sudata
                     if checkpoint:
                         asudata.to_csv(os.path.join(self.dataDir, 'pr_data_detect_augmented.csv'))
-                    classede = cdmon.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
-                                                       training=self.trainingSet, validation=self.validationSet,
-                                                       validratio=self.validratio, compare=self.compare, cv=self.cv,
-                                                       trainscore=self.trainscore, scorers=self.scorers,
-                                                       returnestimators=self.returnestimators)
+                    classede = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
+                                                      training=self.trainingSet, validation=self.validationSet,
+                                                      validratio=self.validratio, compare=self.compare, cv=self.cv,
+                                                      trainscore=self.trainscore, scorers=self.scorers,
+                                                      returnestimators=self.returnestimators,
+                                                      pred_analysis=self.pred_analysis)
                     anomalies = classede.dask_detect(self.detectmethod, self.load, data=asudata)
                     if not anomalies['anomalies']:
                         logger.info('[{}] : [INFO] No anomalies detected with {}'.format(
@@ -1346,7 +1371,7 @@ class EDEngine:
                                 self.reportAnomaly(a)
                                 sleep(parseDelay(self.delay))
                             else:
-                                smodel = sdmon.SciCluster(modelDir=self.modelsDir)
+                                smodel = sede.SciCluster(modelDir=self.modelsDir)
                                 anomalies = smodel.detect(self.method, self.load, data)
                                 if not anomalies['anomalies']:
                                     logger.info('[%s] : [INFO] No anomalies detected with IsolationForest', datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
@@ -1421,9 +1446,9 @@ class EDEngine:
                             logger.info('[{}] : [INFO] Model found at {}'.format(
                                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), str(
                                 os.path.join(self.modelsDir, self.modelName(self.method, self.load)))))
-                            cmodel = cdmon.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
-                                                        training=self.trainingSet, validation=self.validationSet,
-                                                        validratio=self.validratio, compare=self.compare)
+                            cmodel = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
+                                                            training=self.trainingSet, validation=self.validationSet,
+                                                            validratio=self.validratio, compare=self.compare)
                             anomalies = cmodel.detect(self.method, self.load, data)
                             if not anomalies['anomalies']:
                                 logger.info('[%s] : [INFO] No anomalies detected with %s',

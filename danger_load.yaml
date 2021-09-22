@@ -1,0 +1,11 @@
+Method: !!python/object:sklearn.ensemble._iforest.IsolationForest
+  _sklearn_version: '0.22'
+  random_state: 45
+  bootstrap: True
+  verbose: True
+  max_samples: True
+
+test: !!python/object/apply:edeuser.modeltest.testm1
+  kwds:
+    n1: 1
+    n2: 2

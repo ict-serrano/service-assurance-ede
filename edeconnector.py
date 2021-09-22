@@ -1,5 +1,5 @@
 """
-Copyright 2019, Institute e-Austria, Timisoara, Romania
+Copyright 2021, Institute e-Austria, Timisoara, Romania
     http://www.ieat.ro/
 Developers:
  * Gabriel Iuhasz, iuhasz.gabriel@info.uvt.ro
@@ -38,6 +38,7 @@ class Connector:
                  prKafkaEndpoint=None,
                  prKafkaPort=9092,
                  prKafkaTopic='edetopic'):
+        self.dataDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         if esEndpoint is None:
             self.esInstance = None
         else:
