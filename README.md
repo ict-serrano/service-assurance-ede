@@ -1,7 +1,7 @@
-# Event-Detection-Engine - DIPET
+# Event-Detection-Engine - Serrano
 
-Event Detection Engine for the DIPET Chist-Era project based on the work done during the DICE H2020 project specifically the [DICE Anomaly Detection Platform.](https://github.com/dice-project/DICE-Anomaly-Detection-Tool)
-and on the work done during the [ASPIDE](https://www.aspide-project.eu/) H2020 project.
+Event Detection Engine for the H2020 Serrano research project. Based partially on the work done during the DICE H2020 project specifically the [DICE Anomaly Detection Platform.](https://github.com/dice-project/DICE-Anomaly-Detection-Tool)
+and on the work done during the [ASPIDE](https://www.aspide-project.eu/) H2020 project and DIPET Chist Era project.
 
 ## Context
 
@@ -31,7 +31,7 @@ and the substantial variety of solutions which could constitute a monitoring ser
 able to contend with fetching data from a plethora of systems. _Connectors_ is implemented such that it  serves as adapters for each solution. 
 Furthermore, this component also is be able to load data directly from static file (_HDF5_, _CSV_ , _JSON_, or even _raw format_). 
 
-![EDE Architecture](https://github.com/IeAT-ASPIDE/Event-Detection-Engine/blob/master/architecture/ASPIDE-EDE-Page-2.png)
+![EDE Architecture](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/architecture/ede_arch_v3-Page-2.png)
 
 This aids in fine tuning of event and anomaly detection methods. We can also see that _data ingestion can be done directly_ 
 via query from the monitoring solution or _streamed directly from the queuing service_ (after ETL if necessary). 
@@ -210,7 +210,7 @@ The available parameters are:
     ```
     * __RemoveFiltered__ - If set to `True` the metrics used during these operations will be deleted, the resulting augmented columns remaining
     * __Method__ - Excepts User defined augmentations (i.e. python functions) for feature engineering
-        * Methods should be wrapped as can bee seen in the [wrapper_add_column](https://github.com/DIPET-UVT/EDE-Dipet/blob/master/edeuser/user_methods.py#L44) example
+        * Methods should be wrapped as can bee seen in the [wrapper_add_column](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/edeuser/user_methods.py#L44) example
         * All keyword arguments should be passable to the wrapped function
         * Here is an example of a user defined method invocation:
             ```
@@ -312,7 +312,7 @@ Training:
 ```
 
 Similar to how users can add their own implementations for augmentations it is also possible to add custom machine learning
-methods. An example implementation can be found in the edeuser [section](https://github.com/DIPET-UVT/EDE-Dipet/tree/master/edeuser), namely [user_iso](https://github.com/DIPET-UVT/EDE-Dipet/blob/6d92fe4203053b6a6cab294553b81e87bf6ba11d/edeuser/user_methods.py#L8).
+methods. An example implementation can be found in the edeuser [section](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/edeuser/), namely [user_iso](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/edeuser/user_methods.py#L8).
 The wrapper function should contain all parameters which are necessary for the defined method and the return value should be an object which abides by scikit-learn API conventions.  
 Example for user defined method:
 ```yaml
@@ -586,7 +586,7 @@ EDE is capable of running any user defined analysis methods on the data. Users c
         * __Method__ - Information required for instantiation of user methods (including keyword arguments)
     * __Solo__ - If it is set to true it will run only the analysis and ignore any other Training or Prediction tasks.
 
-Example analysis implementations included in EDE are [Pearson correlation](https://github.com/DIPET-UVT/EDE-Dipet/blob/80efea55545fefb7ba6d71f4e0f18fc962a16ef5/edeuser/user_methods.py#L64) and a [Line plot](https://github.com/DIPET-UVT/EDE-Dipet/blob/80efea55545fefb7ba6d71f4e0f18fc962a16ef5/edeuser/user_methods.py#L98):
+Example analysis implementations included in EDE are [Pearson correlation](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/edeuser/edeuser/user_methods.py#L64) and a [Line plot](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/edeuser/user_methods.py#L98):
 
 ```yaml
 # Analysis example
@@ -720,12 +720,12 @@ Misc:
 
 
 
-* [EDE Analysis](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/1_ede_analysis_y2.yaml)
-* [EDE Clustering](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev2_ede_clustering_y2.yaml)
-* [EDE Clustering user defined](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/blob/dev/3_ede_clustering_user_y2.yaml)
-* [EDE Clustering Prediction](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/4_ede_clustering_predict_y2.yaml)
-* [EDE Classification](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/5_ede_classification_y2.yaml)
-* [EDE Classification Predicton](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/6_ede_classification_predict_y2.yaml)
-* [EDE HPO](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/7_ede_hpo_y2.yaml)
-* [EDE TPOT](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/8_ede_tpot.yaml)
-* [EDE TPOT Predict](https://github.com/DIPET-UVT/EDE-Dipet/blob/dev/9_ede_tpot_predict.yaml)
+* [EDE Analysis](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/1_ede_analysis_y2.yaml)
+* [EDE Clustering](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/2_ede_clustering_y2.yaml)
+* [EDE Clustering user defined](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/3_ede_clustering_user_y2.yaml)
+* [EDE Clustering Prediction](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/4_ede_clustering_predict_y2.yaml)
+* [EDE Classification](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/5_ede_classification_y2.yaml)
+* [EDE Classification Predicton](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/6_ede_classification_predict_y2.yaml)
+* [EDE HPO](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/7_ede_hpo_y2.yaml)
+* [EDE TPOT](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/8_ede_tpot.yaml)
+* [EDE TPOT Predict](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/9_ede_tpot_predict.yaml)
