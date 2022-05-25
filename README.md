@@ -1,6 +1,6 @@
 # Event-Detection-Engine - Serrano
 
-Event Detection Engine for the H2020 Serrano research project. Based partially on the work done during the DICE H2020 project specifically the [DICE Anomaly Detection Platform.](https://github.com/dice-project/DICE-Anomaly-Detection-Tool)
+Event Detection Engine for the H2020 [Serrano](https://ict-serrano.eu/) research project. Based partially on the work done during the DICE H2020 project specifically the [DICE Anomaly Detection Platform.](https://github.com/dice-project/DICE-Anomaly-Detection-Tool)
 and on the work done during the [ASPIDE](https://www.aspide-project.eu/) H2020 project and DIPET Chist Era project.
 
 ## Context
