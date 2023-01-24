@@ -1,0 +1,8 @@
+1674554897.769553 ede_service.py:57  	ERROR    Returned default config!
+1674556203.244129 ede_service.py:63  	INFO     Returned default config!
+1674556235.274303 ede_service.py:111 	INFO     Returned default config!
+1674556256.428459 ede_service.py:111 	INFO     Returned default config!
+1674556377.882036 ede_service.py:130 	INFO     Returned default config!
+1674556383.102249 ede_service.py:120 	INFO     Returned default config!
+1674556469.817366 ede_service.py:140 	INFO     Returned inference config!
+1674561490.434571 ede_service.py:77  	INFO     Returned default config!
