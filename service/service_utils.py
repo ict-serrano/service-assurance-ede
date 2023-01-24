@@ -130,3 +130,8 @@ def load_schema(file):
 def check_and_rename(file):
     if os.path.isfile(file):
         os.rename(file, file + ".old")
+
+
+def replace_field(conf, field, value):
+    conf[field] = value
+    return conf

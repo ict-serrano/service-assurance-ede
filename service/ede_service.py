@@ -125,6 +125,22 @@ class ConnectorConfig(Resource, MethodResource):
         resp.status_code = 200
         return resp
 
+    def put(self):
+        if request.is_json:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            new_conf = replace_field(conf, 'Connector', request.json)
+            yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
+            return jsonify(new_conf) # TODO validate request
+        else:
+            log.error('No json in request!')
+            resp = jsonify(
+                {
+                    'error': 'no json in request'
+                }
+            )
+            resp.status_code = 400
+            return resp
+
 
 @doc(description='Filter config for EDE', tags=['config'])
 class FilterConfig(Resource, MethodResource):
@@ -134,6 +150,22 @@ class FilterConfig(Resource, MethodResource):
         log.info('Returned filter config!')
         resp.status_code = 200
         return resp
+
+    def put(self):
+        if request.is_json:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            new_conf = replace_field(conf, 'Filter', request.json)
+            yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
+            return jsonify(new_conf) # TODO validate request
+        else:
+            log.error('No json in request!')
+            resp = jsonify(
+                {
+                    'error': 'no json in request'
+                }
+            )
+            resp.status_code = 400
+            return resp
 
 
 @doc(description='Augmentation config for EDE', tags=['config'])
@@ -145,6 +177,22 @@ class AugmentationConfig(Resource, MethodResource):
         resp.status_code = 200
         return resp
 
+    def put(self):
+        if request.is_json:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            new_conf = replace_field(conf, 'Augmentation', request.json)
+            yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
+            return jsonify(new_conf) # TODO validate request
+        else:
+            log.error('No json in request!')
+            resp = jsonify(
+                {
+                    'error': 'no json in request'
+                }
+            )
+            resp.status_code = 400
+            return resp
+
 
 @doc(description='Inference config for EDE', tags=['config'])
 class InferenceConfig(Resource, MethodResource):
@@ -154,6 +202,22 @@ class InferenceConfig(Resource, MethodResource):
         log.info('Returned inference config!')
         resp.status_code = 200
         return resp
+
+    def put(self):
+        if request.is_json:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            new_conf = replace_field(conf, 'Detect', request.json)
+            yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
+            return jsonify(new_conf) # TODO validate request
+        else:
+            log.error('No json in request!')
+            resp = jsonify(
+                {
+                    'error': 'no json in request'
+                }
+            )
+            resp.status_code = 400
+            return resp
 
 
 # ############## Control #################
@@ -228,9 +292,6 @@ class LocalDataHandler(Resource, MethodResource):
 
 @doc(description='Execute prediction', tags=['inference'])
 class ExecuteInference(Resource, MethodResource):
-    def get(self):
-        return "List of currently active predictive models used for inference"
-
     def post(self):
         from ede_handler import ede_handler
         try:
@@ -246,11 +307,6 @@ class ExecuteInference(Resource, MethodResource):
             })
             resp.status_code = 500
         return resp
-
-
-
-
-
 
 
 # ############## RQ Workers #################
