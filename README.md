@@ -729,3 +729,237 @@ Misc:
 * [EDE HPO](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/7_ede_hpo_y2.yaml)
 * [EDE TPOT](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/8_ede_tpot.yaml)
 * [EDE TPOT Predict](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/9_ede_tpot_predict.yaml)
+
+## EDE Service
+
+The EDE Service is designed to offer a REST API for EDE. The current version only supports executing
+inference and not training. 
+
+### Config
+`GET /v1/config`
+
+Returns the current version of the configuration file. See [EDE Configuration](#ede-configuration) for more details.
+
+`PUT /v1/config`
+
+Uploads a new configuration file in yaml format. See [EDE Configuration](#ede-configuration) for more details.
+
+`GET /v1/config/augmentation`
+
+Returns the current augmentation configuration.
+
+```json
+{
+  "Scaler": {
+    "StandardScaler": {
+      "copy": true,
+      "with_mean": true,
+      "with_std": true
+    }
+  }
+}
+```
+
+`PUT /v1/config/augmentation`
+
+Modifies augmentation part of the configuration.
+
+
+`GET /v1/config/connector`
+
+Returns the current connector configuration.
+
+```json
+{
+  "Dask": {
+    "EnforceCheck": false,
+    "Scale": 3,
+    "SchedulerEndpoint": "local",
+    "SchedulerPort": 8787
+  },
+  "Index": "time",
+  "KafkaEndpoint": "10.9.8.136",
+  "KafkaPort": 9092,
+  "KafkaTopic": "edetopic",
+  "MPort": 9200,
+  "MetricsInterval": "1m",
+  "PREndpoint": "194.102.62.155",
+  "QDelay": "10s",
+  "QSize": 0,
+  "Query": {
+    "query": "{__name__=~\"node.+\"}[1m]"
+  }
+}
+```
+`PUT /v1/config/connector`
+
+Modifies connector part of the configuration.
+
+`GET /v1/config/filter`
+
+Returns the current filter configuration.
+
+```json
+{
+  "DColumns": {
+    "Dlist": "..data/low_variance.yaml"
+  },
+  "Dropna": true,
+  "Fillna": true
+}
+```
+
+`PUT /v1/config/filter`
+
+Modifies filter part of the configuration.
+
+`GET /v1/config/inference`
+
+Return current inference configuration.
+
+```json
+{
+  "Analysis": {
+    "Plot": true
+  },
+  "Load": "cluster_y2_v3",
+  "Method": "IForest",
+  "Scaler": "StandardScaler",
+  "Type": "clustering"
+}
+```
+
+`PUT /v1/config/inference`
+
+Modifies inference part of the configuration.
+
+### Data
+
+These resources deal's with local data handling.
+
+`GET /v1/data`
+
+Returns a list of local datafiles. Currently only, txt, csv, xlsx and json files are supported.
+
+```json
+{
+  "files": [
+    "serrano_test_cluster.csv"
+  ]
+}
+```
+
+`GET /v1/data/{data_file}`
+
+This resource fetches the datafile denoted by the _data_file_ parameter.
+
+`PUT /v1/data/{data_file}`
+
+This resource allows external files to be uploaded to the EDE service. Currently only, txt, csv, xlsx and json files are supported.
+We should note that the __data_file__ parameter must be the same as the name of the file being uploaded.
+
+### Inference
+`POST /v1/inference`
+
+Starts the inference job using EDE based on the current configuration file. 
+
+### Logs
+
+`GET /v1/logs`
+
+Returns EDE Service logs.
+
+### Engine
+
+These resources are used to control RQ workers which wrap individual EDE instances. Each EDE instance can
+use a DASK cluster (local or remote).
+
+`GET /v1/service/jobs`
+
+Returns information about jobs from the services. It contains the unique ids for 4 types of jobs; failed, finished, queued, started.
+An example response can be seen bellow:
+
+```json
+{
+    "failed": [],
+    "finished": [
+        "a9784914-165c-488a-b5a6-7c58c6b421e6"
+    ],
+    "queued": [],
+    "started": []
+}
+
+```
+
+`GET /v1/service/jobs/{job_id}`
+
+Returns information about a specific job denoted by its unique id or <job_uuid>. Some meta information is also contained
+in the response as reported by the background process. This resource can be used to check periodically if a particular job is
+finished. An example response can be seen bellow:
+
+```json
+{
+    "finished": true,
+    "meta": {
+        "progress": "Finished inference"
+    },
+    "status": "finished"
+}
+```
+
+`GET /v1/service/jobs/worker`
+
+Returns a list of workers from the current service instance. The list also includes workers which are
+no longer active, see status from the response. Other information about the workers are their unique id and pid from
+the operating system. An example response can be seen bellow:
+
+```json
+{
+    "workers": [
+        {
+            "id": "e3b0c442-98fc-11e7-8f38-2b66f5e7a637",
+            "pid": 1,
+            "status": "idle"
+        },
+        {
+            "id": "e3b0c442-98fc-11e7-8f38-2b66f5e7a638",
+            "pid": 2,
+            "status": "idle"
+        }
+    ]
+}
+```
+
+`POST /v1/service/jobs/worker`
+
+Every time a post request is issued to this resource it will start a background worker. The maximum number of workers is
+dependent on the number of physical CPU cores available. An example response can be seen bellow:
+
+```json
+{
+  "status": "workers started"
+}
+```
+If the maximum number of workers has been reached the following response will be given:
+
+```json
+{
+  "warning": "maximum number of workers active!",
+  "workers": 4
+}
+```
+
+
+`DELETE /v1/service/jobs/worker`
+
+This resource enables the halting of workers. This resource need to be accessed each time a worker needs to be stopped.
+
+# NOTE
+
+This is a work in progress and is not yet ready for production use. Additional features are being added and the API is subject to change.
+These features include:
+- [ ] Integration with Serrano Telemetry System
+- [ ] Support for training
+- [ ] Support for more data sources
+- [ ] Support input data validation and examples in swagger
+- [ ] Support for additional anomaly reporting (currently only via kafka topic)
