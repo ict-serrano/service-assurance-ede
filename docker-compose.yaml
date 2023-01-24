@@ -1,0 +1,12 @@
+version: '2'
+services:
+    ede_service:
+        build: .
+        ports:
+            - "5001:5001"
+        volumes:
+            - .:/edeservice
+        depends_on:
+            - redis
+    redis:
+        image: redis
