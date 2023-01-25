@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: serrano-uvt-ede-in
+  labels:
+    partner: seranno-uvt
+    app: ede
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - ede.uvt.services.cloud.ict-serrano.eu
+      secretName: ede-uvt-services-cloud-ict-serrano-eu
+  rules:
+    - host: ede.uvt.services.cloud.ict-serrano.eu
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: serrano-uvt-ede-svc
+                port:
+                  number: 5001
