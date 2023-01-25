@@ -1,6 +1,7 @@
 import logging
 from logging.handlers import RotatingFileHandler
 import os
+
 # Logging
 log = logging.getLogger("ede-serrano")
 log.setLevel(logging.INFO)

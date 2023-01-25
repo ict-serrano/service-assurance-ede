@@ -7,12 +7,10 @@ FROM python:3.8
 #ENV EDE_HOST='0.0.0.0'
 #ENV EDE_PORT=5001
 
-
 EXPOSE 5001
 
 RUN mkdir /edeservice
 WORKDIR /edeservice
-
 
 RUN apt-get update
 
