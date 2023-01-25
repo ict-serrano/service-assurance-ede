@@ -28,7 +28,6 @@ from werkzeug.utils import secure_filename
 from flask_restful import Resource
 from flask_apispec.views import MethodResource
 from flask_apispec.annotations import doc
-from edeconfig import readConf
 from app import *
 from service_utils import *
 import psutil
@@ -72,7 +71,10 @@ class EDEStatus(Resource, MethodResource):
 @doc(description='Global config for EDE', tags=['config'])
 class Config(Resource, MethodResource):
     def get(self):
-        conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml')) # todo list all configs make one active
+        try:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml')) # todo list all configs make one active
+        except Exception as e:
+            return {'error': str(e)}, 500
         resp = jsonify(conf)
         log.info('Returned default config!')
         resp.status_code = 200
@@ -119,7 +121,10 @@ class Config(Resource, MethodResource):
 @doc(description='Connector config for EDE', tags=['config'])
 class ConnectorConfig(Resource, MethodResource):
     def get(self):
-        conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+        try:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+        except Exception as e:
+            return {'error': str(e)}, 500
         resp = jsonify(conf['Connector'])
         log.info('Returned connector config!')
         resp.status_code = 200
@@ -127,7 +132,11 @@ class ConnectorConfig(Resource, MethodResource):
 
     def put(self):
         if request.is_json:
-            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            try:
+                conf = readConf(
+                    os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+            except Exception as e:
+                return {'error': str(e)}, 500
             new_conf = replace_field(conf, 'Connector', request.json)
             yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
             return jsonify(new_conf) # TODO validate request
@@ -145,7 +154,10 @@ class ConnectorConfig(Resource, MethodResource):
 @doc(description='Filter config for EDE', tags=['config'])
 class FilterConfig(Resource, MethodResource):
     def get(self):
-        conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+        try:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+        except Exception as e:
+            return {'error': str(e)}, 500
         resp = jsonify(conf['Filter'])
         log.info('Returned filter config!')
         resp.status_code = 200
@@ -153,7 +165,11 @@ class FilterConfig(Resource, MethodResource):
 
     def put(self):
         if request.is_json:
-            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            try:
+                conf = readConf(
+                    os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+            except Exception as e:
+                return {'error': str(e)}, 500
             new_conf = replace_field(conf, 'Filter', request.json)
             yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
             return jsonify(new_conf) # TODO validate request
@@ -171,7 +187,10 @@ class FilterConfig(Resource, MethodResource):
 @doc(description='Augmentation config for EDE', tags=['config'])
 class AugmentationConfig(Resource, MethodResource):
     def get(self):
-        conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+        try:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+        except Exception as e:
+            return {'error': str(e)}, 500
         resp = jsonify(conf['Augmentation'])
         log.info('Returned augmentation config!')
         resp.status_code = 200
@@ -179,7 +198,11 @@ class AugmentationConfig(Resource, MethodResource):
 
     def put(self):
         if request.is_json:
-            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            try:
+                conf = readConf(
+                    os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+            except Exception as e:
+                return {'error': str(e)}, 500
             new_conf = replace_field(conf, 'Augmentation', request.json)
             yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
             return jsonify(new_conf) # TODO validate request
@@ -197,7 +220,10 @@ class AugmentationConfig(Resource, MethodResource):
 @doc(description='Inference config for EDE', tags=['config'])
 class InferenceConfig(Resource, MethodResource):
     def get(self):
-        conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+        try:
+            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+        except Exception as e:
+            return {'error': str(e)}, 500
         resp = jsonify(conf['Detect'])
         log.info('Returned inference config!')
         resp.status_code = 200
@@ -205,7 +231,11 @@ class InferenceConfig(Resource, MethodResource):
 
     def put(self):
         if request.is_json:
-            conf = readConf(os.path.join(conf_dir, 'ede_config_service.yaml'))
+            try:
+                conf = readConf(
+                    os.path.join(conf_dir, 'ede_config_service.yaml'))  # todo list all configs make one active
+            except Exception as e:
+                return {'error': str(e)}, 500
             new_conf = replace_field(conf, 'Detect', request.json)
             yaml.dump(new_conf, open(os.path.join(conf_dir, 'ede_config_service.yaml'), 'w'))
             return jsonify(new_conf) # TODO validate request

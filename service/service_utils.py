@@ -3,7 +3,7 @@ import yaml
 import signal
 import glob
 import json
-
+from configparser import SafeConfigParser
 
 def allowed_file(filename, ALLOWED_EXTENSIONS):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -134,4 +134,18 @@ def check_and_rename(file):
 
 def replace_field(conf, field, value):
     conf[field] = value
+    return conf
+
+
+def readConf(file):
+    '''
+    :param file: location of config file
+    :return: conf file as dict
+    '''
+    file_extension = file.split('.')[-1]
+    if file_extension == 'yaml' or file_extension == 'yml':
+        with open(file) as cf:
+            conf = yaml.unsafe_load(cf)
+    else:
+        raise Exception("Config not found!")
     return conf
