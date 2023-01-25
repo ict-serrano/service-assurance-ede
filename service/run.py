@@ -12,11 +12,9 @@ if __name__ == '__main__':
             bjorn.run(
                 host=host,
                 port=port,
-                debug=debug,
-                log_location=log_location)
+                debug=debug)
         except ImportError:
             app.run(
                 host=host,
                 port=port,
-                debug=debug,
-                log_location=log_location)
+                debug=debug)
