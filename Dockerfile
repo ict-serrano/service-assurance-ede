@@ -15,7 +15,7 @@ WORKDIR /edeservice
 RUN apt-get update
 
 COPY requirements_service.txt /edeservice/requirements.txt
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /edeservice
 
