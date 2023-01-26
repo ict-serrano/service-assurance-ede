@@ -469,6 +469,13 @@ class RQEngineJobStatus(Resource, MethodResource):
         response.status_code = 200
         return response
 
+@doc(description="Execution platform readiness support", tags=['readiness', 'liveness'])
+class ReadinessProbing((Resource, MethodResource)):
+    def get(self):
+        response = jsonify({'ok': True, 'message': 'I am alive'})
+        response.status_code = 200
+        return response
+
 
 # Rest API routing
 api.add_resource(Config, '/v1/config')
@@ -487,6 +494,7 @@ api.add_resource(LocalDataHandler, '/v1/data/<string:data_file>')
 
 api.add_resource(ExecuteInference, '/v1/detect')
 
+api.add_resource(ReadinessProbing, '/ping')
 
 # Rest API docs, Swagger
 docs.register(Config)
@@ -501,3 +509,4 @@ docs.register(RQEngineJobQueueStatus)
 docs.register(RQEngineJobStatus)
 docs.register(EDELogs)
 docs.register(ExecuteInference)
+docs.register(ReadinessProbing)

@@ -14,6 +14,7 @@ if __name__ == '__main__':
                 port=port,
                 debug=debug)
         except ImportError:
+            app.url_map.strict_slashes = False
             app.run(
                 host=host,
                 port=port,
