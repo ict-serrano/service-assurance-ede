@@ -469,6 +469,7 @@ class RQEngineJobStatus(Resource, MethodResource):
         response.status_code = 200
         return response
 
+
 @doc(description="Execution platform readiness support", tags=['readiness', 'liveness'])
 class ReadinessProbing(Resource, MethodResource):
     def get(self):
