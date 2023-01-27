@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: serrano-harbor.rid-intrasoft.eu/serrano/service-assurance-ede
   pullPolicy: Always
-  tag: "latest"
+  tag: "__docker__image__tag__"
 
 imagePullSecrets:
   - name: regcred

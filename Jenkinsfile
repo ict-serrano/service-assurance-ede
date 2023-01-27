@@ -143,8 +143,8 @@ pipeline {
                     sh "kubectl config set-cluster kubernetes-uvt --certificate-authority=uvt.cer --embed-certs=true --server=https://${UVT_KUBERNETES_PUBLIC_ADDRESS}:6443"
                     sh "kubectl config set-credentials integration-operator --token=${INTEGRATION_OPERATOR_TOKEN}"
                     sh "kubectl config set-context kubernetes-uvt --cluster=kubernetes-uvt --user=integration-operator"
-                    sh 'sed -i "s/  tag:.*/  tag: \"${VERSION}\"/" ./helm/values-uvt-serrano.yaml'
-                    sh "helm upgrade --install --force --wait --timeout 600s --kube-context=kubernetes-uvt --namespace integration --set image.tag=${VERSION} ${CHART_NAME} -f values-uvt-serrano.yaml ./helm"
+                    sh 'sed -i "s/__docker__image__tag__/${VERSION}/" ./helm/values-uvt-serrano.yaml'
+                    sh "helm upgrade --install --force --wait --timeout 600s --kube-context=kubernetes-uvt --namespace integration ${CHART_NAME} -f values-uvt-serrano.yaml ./helm"
                 }
             }
         }
