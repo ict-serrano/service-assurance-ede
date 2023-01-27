@@ -469,8 +469,9 @@ class RQEngineJobStatus(Resource, MethodResource):
         response.status_code = 200
         return response
 
+
 @doc(description="Execution platform readiness support", tags=['readiness', 'liveness'])
-class ReadinessProbing((Resource, MethodResource)):
+class ReadinessProbing(Resource, MethodResource):
     def get(self):
         response = jsonify({'ok': True, 'message': 'I am alive'})
         response.status_code = 200
