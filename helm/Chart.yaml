@@ -1,5 +1,5 @@
 apiVersion: v2
-name: serrano-uvt-ede
+name: service-assurance-ede
 description: SERRANO - Event Detection Engine
 type: application
 version: 0.1.0

@@ -5,7 +5,7 @@ image:
   pullPolicy: Always
   tag: "latest"
 
-imagePullSecrets: 
+imagePullSecrets:
   - name: regcred
 
 nameOverride: ""
@@ -35,39 +35,36 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 5001
+  port: 5551
 
 persistence:
-  enabled: false
-  storageClass: ""
+  enabled: true
+  storageClass: "nlsas-01"
   size: 10Gi
 
 ingress:
-  enabled: false
-  className: ""
-  annotations: {}
-#    cert-manager.io/cluster-issuer: letsencrypt-prod
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
   hosts:
-    - host: chart-example.local
+    - host: service-assurance-ede.services.cloud.ict-serrano.eu
       paths:
         - path: /
           pathType: ImplementationSpecific
-  tls: []
-#    - secretName: chart-example-local
-#      hosts:
-#        - chart-example.local
+  tls: 
+    - secretName: service-assurance-ede-services-cloud-ict-serrano-eu-tls
+      hosts:
+        - service-assurance-ede.services.cloud.ict-serrano.eu
 
-resources: {}
-  # We usually recommend not to specify default resources and to leave this as a conscious
-  # choice for the user. This also increases chances charts run on environments with little
-  # resources, such as Minikube. If you do want to specify resources, uncomment the following
-  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
+resources:
+  limits:
+    cpu: "2"
+    memory: "2Gi"
+  requests:
+    cpu: "1"
+    memory: "1Gi"
 
 autoscaling:
   enabled: false
@@ -94,3 +91,4 @@ redis:
       enabled: false
   auth:
     enabled: false
+    
