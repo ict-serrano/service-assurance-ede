@@ -20,11 +20,12 @@ pipeline {
         }
     }
     stages {
-        stage('Build') {
+        stage('Install requirements') {
             steps {
                 container('python') {
                     sh '/usr/local/bin/python -m pip install --upgrade pip'
                     sh 'pip install --no-cache-dir -r requirements_service.txt'
+                    sh 'pip install --no-input cyclonedx-bom'
                 }
             }
         }
@@ -40,6 +41,20 @@ pipeline {
                     timeout(time: 10, unit: 'MINUTES') {
                         waitForQualityGate abortPipeline: true
                     }
+                }
+            }
+        }
+        stage('Generate BOM') {
+            steps {
+                container('python') {
+                    sh 'cyclonedx-bom -e -F -o ./bom.xml'
+                }
+            }
+        }
+        stage('Dependency Track') {
+            steps {
+                container('python') {
+                    dependencyTrackPublisher artifact: 'bom.xml', projectId: '39acd708-1e14-405e-932e-0af81c96554f', synchronous: true
                 }
             }
         }
