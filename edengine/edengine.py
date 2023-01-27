@@ -868,7 +868,7 @@ class EDEngine:
             datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), method.__name__))
         return data_op
 
-    def trainMethod(self):
+    def trainMethodSelector(self):
         if str2Bool(self.train):
             logger.info('[{}] : [INFO] Getting data ...'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
