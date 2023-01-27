@@ -5,3 +5,4 @@ kubernetes/server/secret.yaml
 *.log
 values-prod.yaml
 venv
+.scannerwork

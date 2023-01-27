@@ -35,7 +35,7 @@ pipeline {
                 scannerHome = tool 'SonarQubeScanner'
             }
             steps {
-                container('maven') {
+                container('java') {
                     withSonarQubeEnv('sonarqube') {
                         sh "${scannerHome}/bin/sonar-scanner -Dsonar.projectKey=${PROJECT_NAME}"
                     }
