@@ -52,13 +52,13 @@ pipeline {
                 }
             }
         }
-        stage('Dependency Track') {
-            steps {
-                container('python') {
-                    dependencyTrackPublisher artifact: 'bom.xml', projectId: '39acd708-1e14-405e-932e-0af81c96554f', synchronous: true
-                }
-            }
-        }
+        // stage('Dependency Track') {
+        //     steps {
+        //         container('python') {
+        //             dependencyTrackPublisher artifact: 'bom.xml', projectId: '', synchronous: true
+        //         }
+        //     }
+        // }
         stage('Docker Build') {
             when {
                 environment name: 'DEPLOY', value: 'true'

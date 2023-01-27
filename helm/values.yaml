@@ -94,3 +94,5 @@ redis:
       enabled: false
   auth:
     enabled: false
+  serviceAccount:
+    create: false
