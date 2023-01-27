@@ -23,7 +23,7 @@ pipeline {
         stage('Install requirements') {
             steps {
                 container('python') {
-                    sh '/usr/bin/apt-get install gcc -y && /usr/bin/apt-get clean'
+                    sh '/usr/bin/apt -y update && /usr/bin/apt -y install gcc && /usr/bin/apt clean'
                     sh '/usr/local/bin/python -m pip install --upgrade pip'
                     sh 'pip install --no-cache-dir -r requirements_service.txt'
                     sh 'pip install --no-input cyclonedx-bom'
