@@ -33,13 +33,23 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.containerEnvironmentVariables }}
+          {{- if or (.Values.containerEnvironmentVariables) (.Values.redis.master) }}
           env:
+          {{- end }}
+          {{- if .Values.containerEnvironmentVariables }}
           {{- range $key, $val := .Values.containerEnvironmentVariables }}
             - name: {{ $key }}
               value: {{ $val | quote }}
           {{- end }}
           {{- end }} 
+          {{- if .Values.redis.master }}
+            - name: REDIS_END
+              value: {{ .Release.Name }}-redis-headless
+          {{- end }}
+          {{- if .Values.redis.master.containerPorts.redis }}
+            - name: REDIS_PORT
+              value: {{ .Values.redis.master.containerPorts.redis | quote }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

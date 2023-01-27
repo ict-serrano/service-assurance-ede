@@ -81,3 +81,16 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
+
+# DO NOT EDIT THE FOLLOWING LINES
+redis:
+  master:
+    count: 1
+    persistence:
+      enabled: false
+  replica:
+    replicaCount: 0
+    persistence:
+      enabled: false
+  auth:
+    enabled: false

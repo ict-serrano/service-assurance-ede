@@ -4,3 +4,4 @@ __pycache__
 kubernetes/server/secret.yaml
 *.log
 values-prod.yaml
+venv
