@@ -30,7 +30,7 @@ spec:
         ports:
         - containerPort: 6379
       - name: serrano-ede-engine
-        image: registry.dev.info.uvt.ro/serrano/ede-serrano:0.0.7
+        image: registry.dev.info.uvt.ro/serrano/ede-serrano:0.0.8
         ports:
         - containerPort: 5001
           protocol: TCP
