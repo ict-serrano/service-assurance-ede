@@ -4,7 +4,7 @@ pipeline {
         DEPLOY = "${env.GIT_BRANCH == "origin/master" || env.GIT_BRANCH == "origin/develop" ? "true" : "false"}"
         DEPLOY_UVT = "${env.GIT_BRANCH == "origin/master" ? "true" : "false"}"
         CHART_NAME = "${env.GIT_BRANCH == "origin/master" ? "service-assurance-ede" : "service-assurance-ede-staging"}"
-        VERSION = '0.0.11'
+        VERSION = '0.0.12'
         DOMAIN = 'localhost'
         REGISTRY = 'serrano-harbor.rid-intrasoft.eu/serrano/service-assurance-ede'
         REGISTRY_URL = 'https://serrano-harbor.rid-intrasoft.eu/serrano'
@@ -52,13 +52,13 @@ pipeline {
                 }
             }
         }
-        // stage('Dependency Track') {
-        //     steps {
-        //         container('python') {
-        //             dependencyTrackPublisher artifact: 'bom.xml', projectId: '', synchronous: true
-        //         }
-        //     }
-        // }
+        stage('Dependency Track') {
+            steps {
+                container('python') {
+                    dependencyTrackPublisher artifact: 'bom.xml', projectId: '7727e147-419b-4283-af49-c1ef40e5e712', synchronous: true
+                }
+            }
+        }
         stage('Docker Build') {
             when {
                 environment name: 'DEPLOY', value: 'true'
