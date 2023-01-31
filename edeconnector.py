@@ -90,13 +90,13 @@ class Connector:
         pr_target_ready = '/-/ready'
         try:
             if self.__check_auth_pr():
-                resp_h = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_health),
+                resp_h = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_health),
                                       auth=HTTPBasicAuth(self.prEndpointUser, self.prEndpointPasswd))
-                resp_r = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_ready),
+                resp_r = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_ready),
                                       auth=HTTPBasicAuth(self.prEndpointUser, self.prEndpointPasswd))
             else:
-                resp_h = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_health))
-                resp_r = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_ready))
+                resp_h = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_health))
+                resp_r = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_ready))
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
@@ -136,10 +136,10 @@ class Connector:
             sys.exit(1)
         try:
             if self.__check_auth_pr():
-                resp = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string),
+                resp = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string),
                                     auth=HTTPBasicAuth(self.prEndpointUser, self.prEndpointPasswd))
             else:
-                resp = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string))
+                resp = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string))
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
@@ -155,10 +155,10 @@ class Connector:
         pr_target_string = '/api/v1/targets'
         try:
             if self.__check_auth_pr():
-                resp = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string),
+                resp = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string),
                                     auth=HTTPBasicAuth(self.prEndpointUser, self.prEndpointPasswd))
             else:
-                resp = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string))
+                resp = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string))
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
@@ -173,10 +173,10 @@ class Connector:
             pr_target_string = '/api/v1/label/{}/values'.format(label)
         try:
             if self.__check_auth_pr():
-                resp = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string),
+                resp = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string),
                                     auth=HTTPBasicAuth(self.prEndpointUser, self.prEndpointPasswd))
             else:
-                resp = requests.get("https://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string))
+                resp = requests.get("http://{}:{}{}".format(self.prEndpoint, self.MInstancePort, pr_target_string))
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
@@ -193,10 +193,10 @@ class Connector:
         try:
             url = '/api/v1/query'
             if self.__check_auth_pr():
-                resp = requests.get('https://{}:{}{}'.format(self.prEndpoint, self.MInstancePort, url), params=query,
+                resp = requests.get('http://{}:{}{}'.format(self.prEndpoint, self.MInstancePort, url), params=query,
                                     auth=HTTPBasicAuth(self.prEndpointUser, self.prEndpointPasswd))
             else:
-                resp = requests.get('https://{}:{}{}'.format(self.prEndpoint, self.MInstancePort, url), params=query)
+                resp = requests.get('http://{}:{}{}'.format(self.prEndpoint, self.MInstancePort, url), params=query)
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
@@ -260,7 +260,7 @@ class Connector:
 
     def roles(self):
         # self.__check_valid_es()
-        nUrl = "https://%s:%s/dmon/v1/overlord/nodes/roles" % (self.esEndpoint, self.dmonPort)
+        nUrl = "http://%s:%s/dmon/v1/overlord/nodes/roles" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get roles url -> %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
         try:
@@ -339,7 +339,7 @@ class Connector:
         return res
 
     def getStormTopology(self):
-        nUrl = "https://%s:%s/dmon/v1/overlord/detect/storm" % (self.esEndpoint, self.dmonPort)
+        nUrl = "http://%s:%s/dmon/v1/overlord/detect/storm" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get storm topology url -> %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
         try:
@@ -405,7 +405,7 @@ class Connector:
         return df
 
     def getInterval(self):
-        nUrl = "https://%s:%s/dmon/v1/overlord/aux/interval" % (self.esEndpoint, self.dmonPort)
+        nUrl = "http://%s:%s/dmon/v1/overlord/aux/interval" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get interval url -> %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
         try:
@@ -419,6 +419,7 @@ class Connector:
 
     def aggQuery(self, queryBody):
         adt_timeout = os.environ['ADP_TIMEOUT'] = os.getenv('ADP_TIMEOUT', str(60)) # Set timeout as env variable ADT_TIMEOUT, if not set use default 60
+        # print "QueryString -> {}".format(queryBody)
         try:
             res = self.esInstance.search(index=self.myIndex, body=queryBody, request_timeout=float(adt_timeout))
         except Exception as inst:
@@ -431,7 +432,7 @@ class Connector:
         '''
         :return: -> returns the list of registered nodes from dmon
         '''
-        nUrl = "https://%s:%s/dmon/v1/observer/nodes" % (self.esEndpoint, self.dmonPort)
+        nUrl = "http://%s:%s/dmon/v1/observer/nodes" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get node url -> %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
         try:
@@ -448,7 +449,7 @@ class Connector:
         return nodes
 
     def getDmonStatus(self):
-        nUrl = "https://%s:%s/dmon/v1/overlord/core/status" % (self.esEndpoint, self.dmonPort)
+        nUrl = "http://%s:%s/dmon/v1/overlord/core/status" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get core status url -> %s',
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
         try:
@@ -458,5 +459,26 @@ class Connector:
                          datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
             sys.exit(2)
         return rdmonStatus.json()
+
+    # def __check_valid_es(self, func):
+    #     @functools.wraps(func)
+    #     def wrap(self, *args, **kwargs):
+    #         if not self.esEndpoint:
+    #             logger.error('[%s] : [ERROR] ES Endpoint not defined in config',
+    #                          datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+    #             sys.exit(1)
+    #         else:
+    #             return func(self, *args, **kwargs)
+    #     return wrap
+    #
+    # def __check_valid_pr(self, func):
+    #     def wrapper(*args, **kwargs):
+    #         if not prEndpoint:
+    #             logger.error('[%s] : [ERROR] PR Endpoint not defined in config',
+    #                          datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+    #             sys.exit(1)
+    #         else:
+    #             func(*args, **kwargs)
+    #     return wrapper
 
 
