@@ -20,7 +20,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch_watcher import WatcherClient
 from edelogger import logger
 from datetime import datetime
-from random import randint
 import time
 
 
@@ -147,7 +146,7 @@ class EdePoint:
                 body={
                     'timestamp': datetime.utcnow(),
                     'status': 500,
-                    'host': '10.0.0.%d' % randint(1, 3)
+                    'host': '10.0.0.1'
                 }
             )
 
@@ -190,4 +189,4 @@ class EdePoint:
                                      "threashold_type": "lower"})
                             logger.info('[%s] : [INFO] Found anomaly for %s at %s with value %f!',
                                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), k, times, vl)
-        return anomalies
+        return anomaliesx
