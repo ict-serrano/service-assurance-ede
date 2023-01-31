@@ -298,7 +298,6 @@ class SciCluster:
                     method,
                     model,
                     data,
-                    anomaly_label=-1 # Todo make anomaly label user definable
                     ):
         smodel = self.__loadClusterModel(method, model)
         anomaliesList = []

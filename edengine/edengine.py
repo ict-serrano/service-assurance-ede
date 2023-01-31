@@ -947,7 +947,6 @@ class EDEngine:
                             opt = ['-S', '10', '-N', '10']
                         try:
                             raise Exception("Weka is no longer supported!!")
-                            sys.exit(2)
                             # self.dweka.simpleKMeansTrain(dataf=data, options=opt, mname=self.export)
                         except Exception as inst:
                             logger.error('[%s] : [ERROR] Unable to run training for method %s exited with %s and %s',
@@ -963,7 +962,6 @@ class EDEngine:
                             opt = ["-I", "1000", "-N", "6",  "-M", "1.0E-6", "-num-slots", "1", "-S", "100"]
                         try:
                             raise Exception("Weka is no longer supported!!")
-                            sys.exit(2)
                             # self.dweka.emTrain(dataf=data, options=opt, mname=self.export)
                         except Exception as inst:
                             logger.error('[%s] : [ERROR] Unable to run training for method %s exited with %s and %s',
@@ -983,7 +981,6 @@ class EDEngine:
                         try:
                             # self.dweka.dbscanTrain(dataf=data, options=opt, mname=self.export)
                             raise Exception("Weka is no longer supported!!")
-                            sys.exit(2)
                         except Exception as inst:
                             logger.error('[%s] : [ERROR] Unable to run training for method %s exited with %s and %s',
                                          datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), self.method,
@@ -1363,13 +1360,7 @@ class EDEngine:
                                 os.path.join(self.modelsDir, self.modelName(self.method, self.load)))))
                             wekaList = ['skm', 'em', 'dbscan']
                             if self.method in wekaList:
-                                # anomalies = self.dweka.runclustermodel(self.method, self.load, data)
                                 raise Exception("Weka is no longer supported!!")
-                                sys.exit(2)
-                                # print ut2hum(e)
-                                a = {"method": self.method, "qinterval": self.qinterval, "anomalies": anomalies}
-                                self.reportAnomaly(a)
-                                sleep(parseDelay(self.delay))
                             else:
                                 smodel = sede.SciCluster(modelDir=self.modelsDir)
                                 anomalies = smodel.detect(self.method, self.load, data)
