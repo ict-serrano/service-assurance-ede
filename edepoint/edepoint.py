@@ -138,17 +138,6 @@ class EdePoint:
     def watchBodyConstructor(self):
         return 0
 
-    def testData(self):
-        for _ in range(5):
-            self.esInstance.index(
-                index='test',
-                doc_type='d',
-                body={
-                    'timestamp': datetime.utcnow(),
-                    'status': 500,
-                    'host': '10.0.0.1'
-                }
-            )
 
     def display(self):
         print(('=' * 80))
