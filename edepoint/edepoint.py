@@ -147,7 +147,7 @@ class EdePoint:
                 body={
                     'timestamp': datetime.utcnow(),
                     'status': 500,
-                    'host': '10.0.0.%d' % randint(1, 3)
+                    'host': '10.0.0.1'
                 }
             )
 
@@ -191,25 +191,3 @@ class EdePoint:
                             logger.info('[%s] : [INFO] Found anomaly for %s at %s with value %f!',
                                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), k, times, vl)
         return anomalies
-
-
-if __name__ == '__main__':
-    testWatcher = EdePoint('85.120.206.27')
-
-    print((testWatcher.watcherInfo()))
-    testWatcher.reinitialize()
-    testWatcher.addWatch()
-    # testWatcher.testData()
-    # for _ in range(30):
-    #     sleep(1)
-    #     print '.'
-    # testWatcher.display()
-    # testWatcher.deleteWatch('error_500')
-
-
-    # es = Elasticsearch('85.120.206.27')
-    # watcher = WatcherClient.infect_client(es)
-    # test = es.watcher.info()
-    #
-    # print test
-    # print test['version']['number']
