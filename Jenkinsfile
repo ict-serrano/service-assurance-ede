@@ -104,7 +104,7 @@ pipeline {
                         //sleep 20 // Sleep is not required if the readiness probe is enabled
                         try {
                             String testName = "1. Check that app is running - 200 response code"
-                            String url = "http://${CHART_NAME}-integration-${PROJECT_NAME}.integration:5551/ping"
+                            String url = "http://${CHART_NAME}-integration.integration:5551/ping"
                             String responseCode = sh(label: testName, script: "curl -m 10 -sLI -w '%{http_code}' $url -o /dev/null", returnStdout: true)
 
                             if (responseCode != '200') {
@@ -112,7 +112,7 @@ pipeline {
                             }
 
                             testName = '2. Validate greeting response without request parameters'
-                            url = "http://${CHART_NAME}-integration-${PROJECT_NAME}.integration:5551/ping"
+                            url = "http://${CHART_NAME}-integration.integration:5551/ping"
                             String responseBody = sh(label: testName, script: "curl -m 10 -sL $url", returnStdout: true)
 
                             if (responseBody != '{"ok":true,"message":"I am alive"}') {
