@@ -122,6 +122,7 @@ pipeline {
                             currentBuild.result = 'FAILURE'
                             echo "Integration Tests failed"
                             echo "$ignored"
+                            sh "exit 1"
                         }
                     }
                 }
