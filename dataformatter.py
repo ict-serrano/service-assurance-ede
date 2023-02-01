@@ -29,14 +29,12 @@ import glob
 from util import csvheaders2colNames, log_format # TODO Check ARFF compatibility
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder
-# from sklearn.externals import joblib # if dump fails
 import joblib
 import importlib
 from functools import reduce
 import tqdm
-# import weka.core.jvm as jvm
 import warnings
-# warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 warnings.filterwarnings("ignore", category=FutureWarning)
 
 

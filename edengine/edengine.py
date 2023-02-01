@@ -728,7 +728,7 @@ class EDEngine:
                 try:
                     scaler_type = self.augmentations['Scaler']
 
-                except:
+                except Exception:
                     scaler_type = False
 
                 try:
@@ -742,9 +742,9 @@ class EDEngine:
                     operations = self.augmentations['Operations']
                     try:
                         remove_filtered = self.augmentations['Operations']['RemoveFiltered']
-                    except:
+                    except Exception:
                         remove_filtered = True
-                except:
+                except Exception:
                     operations = False
                     remove_filtered = False
 
@@ -1196,9 +1196,9 @@ class EDEngine:
                             operations = self.augmentations['Operations']
                             try:
                                 remove_filtered = self.augmentations['Operations']['RemoveFiltered']
-                            except:
+                            except Exception:
                                 remove_filtered = True
-                        except:
+                        except Exception:
                             operations = False
                             remove_filtered = False
                         asudata = self.dformat.computeOnColumns(sudata, operations=operations, remove_filtered=remove_filtered)
@@ -1245,9 +1245,9 @@ class EDEngine:
                             operations = self.augmentations['Operations']
                             try:
                                 remove_filtered = self.augmentations['Operations']['RemoveFiltered']
-                            except:
+                            except Exception:
                                 remove_filtered = True
-                        except:
+                        except Exception:
                             operations = False
                             remove_filtered = False
                         asudata = self.dformat.computeOnColumns(sudata, operations=operations,
