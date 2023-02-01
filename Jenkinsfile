@@ -88,7 +88,7 @@ pipeline {
             }
             steps {
                 container('helm') {
-                    sh "helm uninstall --wait --timeout 600s --namespace integration ${CHART_NAME}-integration"
+                    //sh "helm uninstall --wait --timeout 600s --namespace integration ${CHART_NAME}-integration"
                     sh "helm upgrade --install --force  --wait --timeout 600s --namespace integration --set service.port=5551 --set name=${CHART_NAME} --set image.tag=${VERSION} --set domain=${DOMAIN} ${CHART_NAME}-integration ./helm"
                 }
             }
@@ -113,7 +113,7 @@ pipeline {
 
                             testName = '2. Validate greeting response without request parameters'
                             url = "http://${CHART_NAME}-integration-${PROJECT_NAME}.integration:5551/ping"
-                            String responseBody = sh(label: testName, script: """curl -m 10 -sL $url""", returnStdout: true)
+                            String responseBody = sh(label: testName, script: "curl -m 10 -sL $url", returnStdout: true)
 
                             if (responseBody != '{"ok":true,"message":"I am alive"}') {
                                 error("$testName: Unexpected response body = $responseBody when calling $url")
