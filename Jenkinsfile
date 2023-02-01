@@ -147,7 +147,7 @@ pipeline {
                     sh "kubectl config set-credentials integration-operator --token=${INTEGRATION_OPERATOR_TOKEN}"
                     sh "kubectl config set-context kubernetes-uvt --cluster=kubernetes-uvt --user=integration-operator"
                     sh 'sed -i "s/__docker__image__tag__/${VERSION}/" ./helm/values-uvt-serrano.yaml'
-                    sh "helm upgrade --install --force --wait --timeout 600s --kube-context=kubernetes-uvt --namespace integration ${CHART_NAME} -f ./helm/values-uvt-serrano.yaml ./helm"
+                    sh "helm upgrade --install --wait --timeout 600s --kube-context=kubernetes-uvt --namespace integration ${CHART_NAME} -f ./helm/values-uvt-serrano.yaml ./helm"
                 }
             }
         }
