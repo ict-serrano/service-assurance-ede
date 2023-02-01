@@ -4,7 +4,7 @@ pipeline {
         DEPLOY = "${env.GIT_BRANCH == "origin/master" || env.GIT_BRANCH == "origin/develop" ? "true" : "false"}"
         DEPLOY_UVT = "${env.GIT_BRANCH == "origin/master" ? "true" : "false"}"
         CHART_NAME = "${env.GIT_BRANCH == "origin/master" ? "service-assurance-ede" : "service-assurance-ede-staging"}"
-        VERSION = '0.0.14'
+        VERSION = '0.0.15'
         DOMAIN = 'localhost'
         REGISTRY = 'serrano-harbor.rid-intrasoft.eu/serrano/service-assurance-ede'
         REGISTRY_URL = 'https://serrano-harbor.rid-intrasoft.eu/serrano'
@@ -87,7 +87,7 @@ pipeline {
             }
             steps {
                 container('helm') {
-                    sh "helm uninstall ${CHART_NAME}-integration --namespace integration"
+                    sh "helm uninstall --force  --wait --timeout 600s --namespace integration ${CHART_NAME}-integration"
                     sh "helm upgrade --install --force  --wait --timeout 600s --namespace integration --set service.port=5551 --set name=${CHART_NAME} --set image.tag=${VERSION} --set domain=${DOMAIN} ${CHART_NAME}-integration ./helm"
                 }
             }
