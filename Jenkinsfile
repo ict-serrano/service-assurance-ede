@@ -87,7 +87,7 @@ pipeline {
             }
             steps {
                 container('helm') {
-                    sh "helm uninstall --force  --wait --timeout 600s --namespace integration ${CHART_NAME}-integration"
+                    sh "helm uninstall --wait --timeout 600s --namespace integration ${CHART_NAME}-integration"
                     sh "helm upgrade --install --force  --wait --timeout 600s --namespace integration --set service.port=5551 --set name=${CHART_NAME} --set image.tag=${VERSION} --set domain=${DOMAIN} ${CHART_NAME}-integration ./helm"
                 }
             }
