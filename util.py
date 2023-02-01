@@ -58,32 +58,32 @@ def queryParser(query):
         if r.split(':')[0] == 'yarn':
             try:
                 type['yarn'] = r.split(':')[1].split(', ')
-            except:
+            except Exception:
                 type['yarn'] = 0
         if r.split(':')[0] == 'spark':
             try:
                 type['spark'] = r.split(':')[1].split(', ')
-            except:
+            except Exception:
                 type['spark'] = 0
         if r.split(':')[0] == 'storm':
             try:
                 type['storm'] = r.split(':')[1].split(', ')
-            except:
+            except Exception:
                 type['storm'] = 0
         if r.split(':')[0] == 'system':
             try:
                 type['system'] = r.split(':')[1].split(', ')
-            except:
+            except Exception:
                 type['system'] = 0
         if r.split(':')[0] == 'cassandra':
             try:
                 type['cassandra'] = r.split(':')[1].split(', ')
-            except:
+            except Exception:
                 type['cassandra'] = 0
         if r.split(':')[0] == 'mongodb':
             try:
                 type['mongodb'] = r.split(':')[1].split(', ')
-            except:
+            except Exception:
                 type['mongodb'] = 0
         if r.split(':')[0] == 'userquery':
             type['userquery'] = 0
