@@ -115,7 +115,7 @@ pipeline {
                             url = "http://${CHART_NAME}-integration.integration:5551/ping"
                             String responseBody = sh(label: testName, script: "curl -m 10 -sL $url | tr -d [:space:]", returnStdout: true)
 
-                            if (responseBody != '{"ok":true,"message":"Iamalive"}') {
+                            if (responseBody != '{"message":"Iamalive","ok":true}') {
                                 error("$testName: Unexpected response body = $responseBody when calling $url")
                             }
                         } catch (ignored) {
