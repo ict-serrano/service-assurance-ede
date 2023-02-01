@@ -121,6 +121,7 @@ pipeline {
                         } catch (ignored) {
                             currentBuild.result = 'FAILURE'
                             echo "Integration Tests failed"
+                            echo "$ignored"
                         }
                     }
                 }
