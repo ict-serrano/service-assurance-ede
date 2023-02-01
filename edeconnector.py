@@ -27,6 +27,7 @@ from edelogger import logger
 import json
 import time
 from requests.auth import HTTPBasicAuth
+from util import log_format
 
 
 class Connector:
@@ -51,27 +52,27 @@ class Connector:
             self.esInstanceEndpoint = MInstancePort
             self.myIndex = index
             logger.info('[{}] : [INFO] EDE ES backend Defined at: {} with port {}'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), esEndpoint, MInstancePort))
+                datetime.fromtimestamp(time.time()).strftime(log_format), esEndpoint, MInstancePort))
         if prEndpoint is None:
             pass
         else:
             self.prEndpoint = prEndpoint
             self.MInstancePort = MInstancePort
             logger.info('[{}] : [INFO] EDE PR backend Defined at: {} with port {}'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), prEndpoint, MInstancePort))
+                datetime.fromtimestamp(time.time()).strftime(log_format), prEndpoint, MInstancePort))
             self.prEndpointUser = prEndpointUser
             self.prEndpointPasswd = prEndpointPasswd
             if self.prEndpointUser is not None:
                 logger.info('[{}] : [INFO] EDE PR user defined'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                    datetime.fromtimestamp(time.time()).strftime(log_format)))
             if self.prEndpointPasswd is not None:
                 logger.info('[{}] : [INFO] EDE PR passwd defined'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                    datetime.fromtimestamp(time.time()).strftime(log_format)))
             self.dataDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         if prKafkaEndpoint is None:
             self.producer = None
             logger.warning('[{}] : [WARN] EDE Kafka reporter not set'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                datetime.fromtimestamp(time.time()).strftime(log_format)))
         else:
             self.prKafkaTopic = prKafkaTopic
             try:
@@ -79,10 +80,10 @@ class Connector:
                                               bootstrap_servers=["{}:{}".format(prKafkaEndpoint, prKafkaPort)],
                                               retries=5)
                 logger.info('[{}] : [INFO] EDE Kafka reporter initialized to server {}:{}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), prKafkaEndpoint, prKafkaPort))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), prKafkaEndpoint, prKafkaPort))
             except Exception as inst:
                 logger.error('[{}] : [ERROR] EDE Kafka reporter failed with {} and {}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
                 self.producer = None
 
     def pr_health_check(self):
@@ -100,21 +101,21 @@ class Connector:
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         if resp_h.status_code != 200:
             logger.error(
                 '[{}] : [ERROR] PR endpoint health is bad, exiting'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                    datetime.fromtimestamp(time.time()).strftime(log_format)))
             sys.exit(2)
         if resp_r.status_code != 200:
             logger.error(
                 '[{}] : [ERROR] PR endpoint not ready to serve traffic'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                    datetime.fromtimestamp(time.time()).strftime(log_format)))
             sys.exit(2)
         logger.info(
             '[{}] : [INFO] PR endpoint healthcheck pass'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                datetime.fromtimestamp(time.time()).strftime(log_format)))
         return resp_h.status_code, resp_r.status_code
 
     def pr_status(self, type=None):
@@ -132,7 +133,7 @@ class Connector:
             pr_target_string = '/api/v1/status/{}'.format(type)
         else:
             logger.error('[{}] : [ERROR] unsupported status type {}, supported types are {}'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type, suported))
+                datetime.fromtimestamp(time.time()).strftime(log_format), type, suported))
             sys.exit(1)
         try:
             if self.__check_auth_pr():
@@ -143,7 +144,7 @@ class Connector:
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         return resp.json()
 
@@ -162,7 +163,7 @@ class Connector:
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         return resp.json()
 
@@ -180,7 +181,7 @@ class Connector:
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         return resp.json()
 
@@ -200,7 +201,7 @@ class Connector:
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has occured while connecting to PR endpoint with type {} at arguments {}'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         return resp.json()
 
@@ -254,7 +255,7 @@ class Connector:
             res = self.esInstance.info()
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while connecting to ES dmon with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         return res
 
@@ -262,12 +263,12 @@ class Connector:
         # self.__check_valid_es()
         nUrl = "https://%s:%s/dmon/v1/overlord/nodes/roles" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get roles url -> %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), nUrl)
         try:
             rRoles = requests.get(nUrl)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while connecting to dmon with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         rData = rRoles.json()
         return rData
@@ -277,29 +278,29 @@ class Connector:
         try:
             self.esInstance.create(index=indexName, ignore=400)
             logger.info('[%s] : [INFO] Created index %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), indexName)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Failed to created index %s with %s and %s',
-                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName, type(inst), inst.args)
+                        datetime.fromtimestamp(time.time()).strftime(log_format), indexName, type(inst), inst.args)
 
     def closeIndex(self, indexName):
         try:
             self.esInstance.close(index=indexName)
             logger.info('[%s] : [INFO] Closed index %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), indexName)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Failed to close index %s with %s and %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName, type(inst),
+                         datetime.fromtimestamp(time.time()).strftime(log_format), indexName, type(inst),
                          inst.args)
 
     def deleteIndex(self, indexName):
         try:
             res = self.esInstance.indices.delete(index=indexName, ignore=[400, 404])
             logger.info('[%s] : [INFO] Deleted index %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), indexName)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Failed to delete index %s with %s and %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName, type(inst),
+                         datetime.fromtimestamp(time.time()).strftime(log_format), indexName, type(inst),
                          inst.args)
             return 0
         return res
@@ -307,7 +308,7 @@ class Connector:
     def openIndex(self, indexName):
         res = self.esInstance.indices.open(index=indexName)
         logger.info('[%s] : [INFO] Open index %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), indexName)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), indexName)
         return res
 
     def getIndex(self, indexName):
@@ -341,12 +342,12 @@ class Connector:
     def getStormTopology(self):
         nUrl = "https://%s:%s/dmon/v1/overlord/detect/storm" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get storm topology url -> %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), nUrl)
         try:
             rStormTopology = requests.get(nUrl)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while connecting to dmon with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             print("Can't connect to dmon at %s port %s" % (self.esEndpoint, self.dmonPort))
             sys.exit(2)
         rData = rStormTopology.json()
@@ -357,23 +358,23 @@ class Connector:
             res = self.esInstance.index(index=anomalyIndex, doc_type=doc_type, body=body)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while pushing anomaly with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         return res
 
     def pushAnomalyKafka(self, body):
         if self.producer is None:
             logger.warning('[{}] : [WARN] Kafka reporter not defined, skipping reporting'.format(
-            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+            datetime.fromtimestamp(time.time()).strftime(log_format)))
         else:
             try:
                 self.producer.send(self.prKafkaTopic, body)
                 # self.producer.flush()
                 logger.info('[{}] : [INFO] Anomalies reported to kafka topic {}'.format(
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), self.prKafkaTopic))
+                    datetime.fromtimestamp(time.time()).strftime(log_format), self.prKafkaTopic))
             except Exception as inst:
                 logger.error('[{}] : [ERROR] Failed to report anomalies to kafka topic {} with {} and {}'.format(
-            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), self.prKafkaTopic, type(inst), inst.args))
+            datetime.fromtimestamp(time.time()).strftime(log_format), self.prKafkaTopic, type(inst), inst.args))
         return 0
 
     def __check_auth_pr(self):
@@ -383,7 +384,7 @@ class Connector:
             return False
         else:
             logger.error('[{}] : [ERROR] EDE Pr Endpoint auth credentials not set correctly, please check!'.format(
-                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), ))
+                datetime.fromtimestamp(time.time()).strftime(log_format), ))
             sys.exit(1)
 
     def getModel(self):
@@ -398,21 +399,21 @@ class Connector:
             df = pd.read_csv(data_loc)
         except Exception as inst:
             logger.error('[{}] : [ERROR] Cannot load local data with  {} and {}'.format(
-            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         logger.info('[{}] : [INFO] Loading local data from {} with shape {}'.format(
-            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), data_loc, df.shape))
+            datetime.fromtimestamp(time.time()).strftime(log_format), data_loc, df.shape))
         return df
 
     def getInterval(self):
         nUrl = "https://%s:%s/dmon/v1/overlord/aux/interval" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get interval url -> %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), nUrl)
         try:
             rInterval = requests.get(nUrl)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while connecting to dmon with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         rData = rInterval.json()
         return rData
@@ -424,7 +425,7 @@ class Connector:
             res = self.esInstance.search(index=self.myIndex, body=queryBody, request_timeout=float(adt_timeout))
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception while executing ES query with %s and %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         return res
 
@@ -434,12 +435,12 @@ class Connector:
         '''
         nUrl = "https://%s:%s/dmon/v1/observer/nodes" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get node url -> %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), nUrl)
         try:
             rdmonNode = requests.get(nUrl)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while connecting to dmon with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         rdata = rdmonNode.json()
         nodes = []
@@ -451,12 +452,12 @@ class Connector:
     def getDmonStatus(self):
         nUrl = "https://%s:%s/dmon/v1/overlord/core/status" % (self.esEndpoint, self.dmonPort)
         logger.info('[%s] : [INFO] dmon get core status url -> %s',
-                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), nUrl)
+                    datetime.fromtimestamp(time.time()).strftime(log_format), nUrl)
         try:
             rdmonStatus = requests.get(nUrl)
         except Exception as inst:
             logger.error('[%s] : [ERROR] Exception has occured while connecting to dmon with type %s at arguments %s',
-                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args)
+                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
             sys.exit(2)
         return rdmonStatus.json()
 
