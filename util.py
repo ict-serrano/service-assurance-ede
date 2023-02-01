@@ -46,6 +46,7 @@ modelDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'models')
 #     saver = Saver(classname="weka.core.converters.ArffSaver")
 #     saver.save_file(data, outdata)
 
+log_format = '%Y-%m-%d %H:%M:%S'
 
 def queryParser(query):
     '''
