@@ -27,6 +27,7 @@ pipeline {
                     sh '/usr/local/bin/python -m pip install --upgrade pip'
                     sh 'pip install --no-cache-dir -r requirements_service.txt'
                     sh 'pip install --no-input cyclonedx-bom'
+                    sh "openssl s_client -connect ${UVT_KUBERNETES_PUBLIC_ADDRESS}:6443 2>/dev/null </dev/null |  sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > uvt.cer"
                 }
             }
         }
@@ -97,7 +98,7 @@ pipeline {
                 environment name: 'DEPLOY', value: 'true'
             }
             steps {
-                container('maven') {
+                container('java') {
                     script {
                         echo 'Run your Integration Tests here'
                         //sleep 20 // Sleep is not required if the readiness probe is enabled
