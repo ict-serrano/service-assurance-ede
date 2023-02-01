@@ -143,7 +143,7 @@ pipeline {
             steps {
                 container('helm') {
                     sh "echo -n $UVT_K8S_CA | base64 -d > uvt.cer"
-                    sh "kubectl config set-cluster kubernetes-uvt --certificate-authority=uvt.cer --embed-certs=true --insecure-skip-tls-verify=true --server=https://${UVT_KUBERNETES_PUBLIC_ADDRESS}:6443"
+                    sh "kubectl config set-cluster kubernetes-uvt --certificate-authority=uvt.cer --embed-certs=true --server=https://${UVT_KUBERNETES_PUBLIC_ADDRESS}:6443"
                     sh "kubectl config set-credentials integration-operator --token=${INTEGRATION_OPERATOR_TOKEN}"
                     sh "kubectl config set-context kubernetes-uvt --cluster=kubernetes-uvt --user=integration-operator"
                     sh 'sed -i "s/__docker__image__tag__/${VERSION}/" ./helm/values-uvt-serrano.yaml'
