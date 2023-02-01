@@ -4,5 +4,6 @@ __pycache__
 kubernetes/server/secret.yaml
 *.log
 values-prod.yaml
+values-uvtsec-serrano.yaml
 venv
 .scannerwork
