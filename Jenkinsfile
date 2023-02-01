@@ -113,9 +113,9 @@ pipeline {
 
                             testName = '2. Validate greeting response without request parameters'
                             url = "http://${CHART_NAME}-integration.integration:5551/ping"
-                            String responseBody = sh(label: testName, script: "curl -m 10 -sL $url", returnStdout: true)
+                            String responseBody = sh(label: testName, script: "curl -m 10 -sL $url | tr -d [:space:]", returnStdout: true)
 
-                            if (responseBody != '{"ok":true,"message":"I am alive"}') {
+                            if (responseBody != '{"ok":true,"message":"Iamalive"}') {
                                 error("$testName: Unexpected response body = $responseBody when calling $url")
                             }
                         } catch (ignored) {
