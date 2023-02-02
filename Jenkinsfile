@@ -4,7 +4,7 @@ pipeline {
         DEPLOY = "${env.GIT_BRANCH == "origin/master" || env.GIT_BRANCH == "origin/develop" ? "true" : "false"}"
         DEPLOY_UVT = "${env.GIT_BRANCH == "origin/master" ? "true" : "false"}"
         CHART_NAME = "${env.GIT_BRANCH == "origin/master" ? "service-assurance-ede" : "service-assurance-ede-staging"}"
-        VERSION = '0.0.21'
+        VERSION = '0.0.22'
         DOMAIN = 'localhost'
         REGISTRY = 'serrano-harbor.rid-intrasoft.eu/serrano/service-assurance-ede'
         REGISTRY_URL = 'https://serrano-harbor.rid-intrasoft.eu/serrano'
