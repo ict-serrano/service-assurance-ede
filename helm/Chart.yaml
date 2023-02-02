@@ -2,8 +2,8 @@ apiVersion: v2
 name: service-assurance-ede
 description: SERRANO - Event Detection Engine
 type: application
-version: 0.1.0
-appVersion: "0.16.0"
+version: 0.1.7
+appVersion: "0.17.0"
 maintainers:
 - email: silviu.panica@e-uvt.ro
   name: "Silviu Panica"
