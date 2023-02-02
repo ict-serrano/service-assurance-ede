@@ -171,9 +171,6 @@ class EDEngine:
             logger.info('[{}] : [INFO] ES Backend cluster health: {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), resClusterState))
 
-            # print "Checking index %s state ...." %self.index
-            # resGetIndex = self.dmonConnector.getIndex(self.index)
-            # print "Index %s state -> %s" %(self.index, resGetIndex)
 
             logger.info('[{}] : [INFO] Checking dmon registered nodes....'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format)))
@@ -432,7 +429,6 @@ class EDEngine:
                             if not checkpoint:
                                 self.dformat.dict2csv(ghreduce, qhreduce, hreduce_file)
                             else:
-                                # lreduce.append(self.dformat.dict2csv(ghreduce, qhreduce, hreduce_file, df=checkpoint))
                                 lreduce[process] = self.dformat.dict2csv(ghreduce, qhreduce, hreduce_file, df=checkpoint)
                     else:
                         logger.info('[%s] : [INFO] No reduce process for host  %s found',
@@ -451,7 +447,6 @@ class EDEngine:
                             if not checkpoint:
                                 self.dformat.dict2csv(ghmap, qhmap, hmap_file)
                             else:
-                                # lmap.append(self.dformat.dict2csv(ghmap, qhmap, hmap_file, df=checkpoint))
                                 lmap[process] = self.dformat.dict2csv(ghmap, qhmap, hmap_file, df=checkpoint)
                     else:
                         logger.info('[%s] : [INFO] No map process for host  %s found',
@@ -687,8 +682,6 @@ class EDEngine:
             else:
                 df = self.dformat.filterWildcard(df, wild_card=self.filterwild['Regex'])
 
-        # if index:
-        #     df.set_index(index, inplace=True)
 
         if self.categorical is None:
             logger.info('[%s] : [INFO] Skipping categorical feature conversion',
@@ -723,7 +716,6 @@ class EDEngine:
             if self.traintype == 'classification' or self.traintype == 'hpo' or self.traintype =='tpot':
                 pr_data, y = self.dformat.getGT(pr_data, gt=self.target)
             udata = self.filterData(pr_data)
-            # print(list(udata.index))
             if self.augmentations is not None:
                 try:
                     scaler_type = self.augmentations['Scaler']
@@ -737,7 +729,6 @@ class EDEngine:
                     logger.warning('[{}] : [WARN] Failed to initialize scaler with {} and {}'.format(
                     datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
                     sudata = udata
-                # print(list(sudata.index))
                 try:
                     operations = self.augmentations['Operations']
                     try:
@@ -751,7 +742,6 @@ class EDEngine:
                 asudata = self.dformat.computeOnColumns(sudata, operations=operations, remove_filtered=remove_filtered)
                 if checkpoint:
                     asudata.to_csv(os.path.join(self.dataDir, 'pr_data_augmented.csv'))
-                # print(list(asudata.index))
             else:
                 asudata = udata
             # User defined analysis
@@ -768,7 +758,6 @@ class EDEngine:
                     dbscanmodel = dsdbscan.dask_sdbscanTrain(settings=self.methodSettings, mname=self.export, data=asudata)
                 else:
                     if not isinstance(self.trainmethod, str):
-                        # print(self.trainmethod)
                         logger.info('[{}] : [INFO] Detected user defined method, initializing ...'.format(
                             datetime.fromtimestamp(time.time()).strftime(log_format)))
                         umeth = sede.SciCluster(self.modelsDir)
@@ -947,13 +936,10 @@ class EDEngine:
                             opt = ['-S', '10', '-N', '10']
                         try:
                             raise Exception("Weka is no longer supported!!")
-                            # self.dweka.simpleKMeansTrain(dataf=data, options=opt, mname=self.export)
                         except Exception as inst:
                             logger.error('[%s] : [ERROR] Unable to run training for method %s exited with %s and %s',
                                             datetime.fromtimestamp(time.time()).strftime(log_format), self.method, type(inst), inst.args)
                             sys.exit(1)
-                        # logger.info('[{}] : [INFO] Saving model with name {}'.format(
-                        #     datetime.fromtimestamp(time.time()).strftime(log_format), self.modelName(self.method, self.export)))
                     elif self.method == 'em':
                         logger.info('[{}] : [INFO] Method {} settings detected: {}'.format(
                             datetime.fromtimestamp(time.time()).strftime(log_format), self.method, str(self.methodSettings)))
@@ -962,15 +948,11 @@ class EDEngine:
                             opt = ["-I", "1000", "-N", "6",  "-M", "1.0E-6", "-num-slots", "1", "-S", "100"]
                         try:
                             raise Exception("Weka is no longer supported!!")
-                            # self.dweka.emTrain(dataf=data, options=opt, mname=self.export)
                         except Exception as inst:
                             logger.error('[%s] : [ERROR] Unable to run training for method %s exited with %s and %s',
                                          datetime.fromtimestamp(time.time()).strftime(log_format), self.method,
                                          type(inst), inst.args)
                             sys.exit(1)
-                        # logger.info('[{}] : [INFO] Saving model with name {}'.format(
-                        #     datetime.fromtimestamp(time.time()).strftime(log_format),
-                        #     self.modelName(self.method, self.export)))
                     elif self.method == 'dbscan':
                         logger.info('[{}] : [INFO] Method {} settings detected: {}'.format(
                             datetime.fromtimestamp(time.time()).strftime(log_format), self.method,
@@ -986,9 +968,6 @@ class EDEngine:
                                          datetime.fromtimestamp(time.time()).strftime(log_format), self.method,
                                          type(inst), inst.args)
                             sys.exit(1)
-                        # logger.info('[{}] : [INFO] Saving model with name {}'.format(
-                        #     datetime.fromtimestamp(time.time()).strftime(log_format),
-                        #     self.modelName(self.method, self.export)))
                     elif self.method == 'sdbscan':
                         opt = self.methodSettings
                         if not opt or 'leaf_size' not in opt:
@@ -1015,7 +994,6 @@ class EDEngine:
                                             datetime.fromtimestamp(time.time()).strftime(log_format), self.method, self.type)
                     sys.exit(1)
             elif self.type == 'classification':
-                # validratio=settings['validratio'], compare=True)
                 classdmon = cede.SciClassification(self.modelsDir, self.dataDir, self.checkpoint, self.export,
                                                    training=self.trainingSet, validation=self.validationSet,
                                                    validratio=self.validratio, compare=self.compare)
@@ -1294,14 +1272,6 @@ class EDEngine:
                     logger.info('[{}] : [INFO] Collecting data ...'.format(
                         datetime.fromtimestamp(time.time()).strftime(log_format)))
                     systemReturn, yarnReturn, reducemetrics, mapmetrics, mrapp, sparkReturn, stormReturn, cassandraReturn, mongoReturn, userQueryReturn, cepQueryReturn = self.getData(detect=True)
-                    # if list(set(self.dformat.fmHead) - set(list(yarnReturn.columns.values))):
-                    #     print "Mismatch between desired and loaded data"
-                    #     sys.exit()
-                    # if self.dataNodeTraining != self.dataNodeDetecting:
-                    #     print "Detected datanode discrepancies; training %s, detecting %s" %(self.dataNodeTraining, self.dataNodeDetecting)
-                    #     logger.error('[%s] : [ERROR]Detected datanode discrepancies; training %s, detecting %s',
-                    #          datetime.fromtimestamp(time.time()).strftime(log_format), self.dataNodeTraining, self.dataNodeDetecting)
-                    #     sys.exit(1)
 
                     if 'yarn' in queryd:
                         yarnReturn = self.filterData(yarnReturn) #todo
@@ -1731,23 +1701,23 @@ class EDEngine:
         checkpoint = str2Bool(self.checkpoint)
         queue, queue_file = self.qConstructor.queueResourceString()
         cluster, cluster_file = self.qConstructor.clusterMetricsSring()
-        # jvmMrapp, jvmMrapp_file = self.qConstructor.jvmMrappmasterString()
+        
         jvmResMng, jvmResMng_file = self.qConstructor.jvmResourceManagerString()
 
-        # qjvmMrapp = self.qConstructor.jvmNNquery(jvmMrapp, tfrom, to, self.qsize, self.qinterval)
+        
         qqueue = self.qConstructor.resourceQueueQuery(queue, tfrom, to, self.qsize, self.qinterval)
         qcluster = self.qConstructor.clusterMetricsQuery(cluster, tfrom, to, self.qsize, self.qinterval)
         qjvmResMng = self.qConstructor.jvmNNquery(jvmResMng, tfrom, to, self.qsize, self.qinterval)
 
         gqueue = self.edeConnector.aggQuery(qqueue)
         gcluster = self.edeConnector.aggQuery(qcluster)
-        # gjvmMrapp = self.dmonConnector.aggQuery(qjvmMrapp)
+        
         gjvmResourceManager = self.edeConnector.aggQuery(qjvmResMng)
 
         if not checkpoint:
             self.dformat.dict2csv(gcluster, qcluster, cluster_file)
             self.dformat.dict2csv(gqueue, qqueue, queue_file)
-            # self.dformat.dict2csv(gjvmMrapp, qjvmMrapp, jvmMrapp_file)
+            
             self.dformat.dict2csv(gjvmResourceManager, qjvmResMng, jvmResMng_file)
 
             print("Starting cluster merge ...")
@@ -1757,7 +1727,7 @@ class EDEngine:
         else:
             df_cluster = self.dformat.dict2csv(gcluster, qcluster, cluster_file, df=checkpoint)
             df_queue = self.dformat.dict2csv(gqueue, qqueue, queue_file, df=checkpoint)
-            # df_jvmMrapp = self.dformat.dict2csv(gjvmMrapp, qjvmMrapp, jvmMrapp_file, df=checkpoint)
+            
             df_jvmResourceManager = self.dformat.dict2csv(gjvmResourceManager, qjvmResMng, jvmResMng_file, df=checkpoint)
             print("Starting cluster merge ...")
             merged_cluster = self.dformat.chainMergeCluster(clusterMetrics=df_cluster, queue=df_queue,
@@ -1800,13 +1770,11 @@ class EDEngine:
 
             uniqueReduce = set()
             for i in greduce['hits']['hits']:
-                # print i['_source']['ProcessName']
                 uniqueReduce.add(i['_source']['ProcessName'])
             nodeProcessReduce[node] = list(uniqueReduce)
 
             uniqueMap = set()
             for i in gmap['hits']['hits']:
-                # print i['_source']['ProcessName']
                 uniqueMap.add(i['_source']['ProcessName'])
             nodeProcessMap[node] = list(uniqueMap)
 
@@ -1825,7 +1793,6 @@ class EDEngine:
                     if not checkpoint:
                         self.dformat.dict2csv(ghreduce, qhreduce, hreduce_file)
                     else:
-                        # lRD.append(self.dformat.dict2csv(ghreduce, qhreduce, hreduce_file, df=checkpoint))
                         lRD[process] = self.dformat.dict2csv(ghreduce, qhreduce, hreduce_file, df=checkpoint)
             else:
                 logger.info('[%s] : [INFO] No reduce process for host  %s found',
@@ -1850,7 +1817,6 @@ class EDEngine:
                     if not checkpoint:
                         self.dformat.dict2csv(ghmap, qhmap, hmap_file)
                     else:
-                        # lMP.append(self.dformat.dict2csv(ghmap, qhmap, hmap_file, df=checkpoint))
                         lMP[process] = self.dformat.dict2csv(ghmap, qhmap, hmap_file, df=checkpoint)
             else:
                 logger.info('[%s] : [INFO] No map process for host  %s found',
@@ -1956,7 +1922,6 @@ class EDEngine:
                 self.dformat.dict2csv(gcassandragauge, qcassandragauge, cassandragauge_file, df=True))
 
             # Merge and rename by node system Files
-
         df_CA_Count = self.dformat.chainMergeCassandra(lcassandraCounter)
         df_CA_Gauge = self.dformat.chainMergeCassandra(lcassandraGauge)
 
@@ -2075,7 +2040,6 @@ class EDEngine:
             returnUQ = 0
         else:
             df_UQ = self.dformat.dict2csv(guserQuery, query, response_file, df=checkpoint)
-            # df_NN.set_index('key', inplace=True)
             returnUQ = df_UQ
         print("Querying  Name Node metrics complete")
         logger.info('[%s] : [INFO] Querying  Name Node metrics complete',
@@ -2132,7 +2096,6 @@ class EDEngine:
             self.dformat.df2csv(df, os.path.join(self.dataDir, cep_file))
             returnCEP = 0
         else:
-            # df.set_index('key', inplace=True)
             returnCEP = df
         print("Querying  CEP metrics complete")
         logger.info('[%s] : [INFO] Querying  CEP metrics complete',
@@ -2161,17 +2124,12 @@ class EDEngine:
             returnSP = 0
         else:
             df_SP = self.dformat.dict2csv(gSpark, qSpark, spark_file, df=checkpoint)
-            # df_NN.set_index('key', inplace=True)
             returnNN = df_SP
         print("Querying  Spark metrics complete")
         logger.info('[%s] : [INFO] Querying  Name Node metrics complete',
                     datetime.fromtimestamp(time.time()).strftime(log_format))
         return returnNN
 
-    # def printTest(self):
-    #     print("Endpoint -> %s" %self.esendpoint)
-    #     print("Method settings -> %s" %self.methodSettings)
-    #     print("Train -> %s"  % type(self.train))
 
     def print_time(self, threadName, delay):
         count = 0

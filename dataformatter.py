@@ -117,7 +117,7 @@ class DataFormatter:
             if remove_filtered:
                 unique_all_processed_columns = list(set(all_processed_columns))
                 logger.warning('[{}] : [WARN] Droping columns used for computation ...'.format(
-                    datetime.fromtimestamp(time.time()).strftime(log_format), unique_all_processed_columns))
+                    datetime.fromtimestamp(time.time()).strftime(log_format)))
                 self.dropColumns(df, unique_all_processed_columns, cp=False)
         else:
             logger.info('[{}] : [INFO] No data operations/augmentations defined'.format(
@@ -142,9 +142,6 @@ class DataFormatter:
             if not result:
                 logger.error('[%s] : [ERROR] Dataformatter filter method unknown columns %s',
                              datetime.fromtimestamp(time.time()).strftime(log_format), lColumns)
-            # print(len(df.columns.values))
-            # for e in df.columns.values:
-            #     print("{},".format(e))
                 sys.exit(1)
         return df[lColumns]
 
@@ -168,8 +165,7 @@ class DataFormatter:
 
         logger.info('[%s] : [INFO] Filtered shape:  %s',
                     datetime.fromtimestamp(time.time()).strftime(log_format), df_wild.shape)
-        # print("Columns of filtered data:")
-        # print(df_concat_filtered.columns)
+        
         return df_wild
 
     def filterRows(self, df, ld, gd=0):
@@ -312,8 +308,6 @@ class DataFormatter:
             for k, v in slaveCol.items():
                 iterSlave[k] = v+str(i)
             current = current.merge(frame).rename(columns=iterSlave)
-        #current.to_csv(mergedFile)
-        # current.set_index('key', inplace=True)
         return current
 
     def chainMergeNR(self, interface=None, memory=None, load=None, packets=None):
@@ -349,7 +343,7 @@ class DataFormatter:
             clusterMetrics = os.path.join(self.dataDir, "ClusterMetrics.csv")
             queue = os.path.join(self.dataDir, "ResourceManagerQueue.csv")
             jvmRM = os.path.join(self.dataDir, "JVM_RM.csv")
-            # jvmmrapp = os.path.join(self.dataDir, "JVM_MRAPP.csv")
+            
 
         lFiles = [clusterMetrics, queue, jvmRM]
 
@@ -447,12 +441,7 @@ class DataFormatter:
                     incomp.append(type(el))
             logger.error('[%s] : [ERROR] Incompatible type detected for merging, cannot merge type %s',
                                          datetime.fromtimestamp(time.time()).strftime(log_format), str(incomp))
-        # for d in dfList:
-        #     if d.empty:
-        #         logger.warning('[%s] : [INFO] Detected empty dataframe in final merge, removing ...',
-        #                        datetime.fromtimestamp(time.time()).strftime(log_format))
-        #
-        #         dfList.pop(dfList.index(d))
+        
         try:
             current = reduce(lambda x, y: pd.merge(x, y, on='key'), dfList)
         except Exception as inst:
@@ -462,7 +451,6 @@ class DataFormatter:
                      datetime.fromtimestamp(time.time()).strftime(log_format), dfList)
             sys.exit(1)
 
-        # current.set_index('key', inplace=True)
         return current
 
     def df2csv(self, dataFrame, mergedFile):
@@ -564,8 +552,6 @@ class DataFormatter:
         lFile = [dfs, cluster, nodeMng, jvmnodeMng, dataNode, jvmNameNode, shuffle, system]
         merged_df = self.listMerge(lFile)
         merged_df.sort_index(axis=1, inplace=True)
-        # merged_df.set_index('key', inplace=True)
-        #self.dropMissing(merged_df)
         self.fillMissing(merged_df)
         self.fmHead = list(merged_df.columns.values)
         return merged_df
@@ -581,26 +567,24 @@ class DataFormatter:
         requiredMetrics = []
         logger.info('[%s] : [INFO] Started response to csv conversion',
                                          datetime.fromtimestamp(time.time()).strftime(log_format))
-        # print "This is the query _------------_-> %s" %query
-        # print "This is the response _------------_-> %s" %response
+        
         for key, value in response['aggregations'].items():
             for k, v in value.items():
                 for r in v:
                     dictMetrics = {}
-                    # print "This is the dictionary ---------> %s " % str(r)
+                    
                     for rKey, rValue in r.items():
                         if rKey == 'doc_count' or rKey == 'key_as_string':
                             pass
                         elif rKey == 'key':
                             logger.debug('[%s] : [DEBUG] Request has keys %s and  values %s',
                                          datetime.fromtimestamp(time.time()).strftime(log_format), rKey, rValue)
-                            # print "%s -> %s"% (rKey, rValue)
+                            
                             dictMetrics['key'] = rValue
                         elif list(query['aggs'].values())[0].values()[1].values()[0].values()[0].values()[0] == 'type_instance.raw' \
                                 or list(query['aggs'].values())[0].values()[1].values()[0].values()[0].values()[0] == 'type_instance':
                             logger.debug('[%s] : [DEBUG] Detected Memory type aggregation', datetime.fromtimestamp(time.time()).strftime(log_format))
-                            # print "This is  rValue ________________> %s" % str(rValue)
-                            # print "Keys of rValue ________________> %s" % str(rValue.keys())
+                           
                             try:
                                 for val in rValue['buckets']:
                                         dictMetrics[val['key']] = val['1']['value']
@@ -609,14 +593,12 @@ class DataFormatter:
                                          datetime.fromtimestamp(time.time()).strftime(log_format), rKey, rValue['value'])
                                 sys.exit(1)
                         else:
-                            # print "Values -> %s" % rValue
-                            # print "rKey -> %s" % rKey
-                            # print "This is the rValue ___________> %s " % str(rValue)
+                           
                             logger.debug('[%s] : [DEBUG] Request has keys %s and flattened values %s',
                                          datetime.fromtimestamp(time.time()).strftime(log_format), rKey, rValue['value'])
                             dictMetrics[rKey] = rValue['value']
                     requiredMetrics.append(dictMetrics)
-        # print "Required Metrics -> %s" % requiredMetrics
+        
         csvOut = os.path.join(self.dataDir, filename)
         cheaders = []
         if list(query['aggs'].values())[0].values()[1].values()[0].values()[0].values()[0] == "type_instance.raw" or \
@@ -672,7 +654,7 @@ class DataFormatter:
             return 0
         else:
             df = pd.DataFrame(requiredMetrics)
-            # df.set_index('key', inplace=True)
+            
             logger.info('[%s] : [INFO] Created dataframe',
                         datetime.fromtimestamp(time.time()).strftime(log_format))
             return df
@@ -737,24 +719,7 @@ class DataFormatter:
         kdf = df.set_index('key')
         return kdf.to_dict()
 
-    # def dict2arff(self, fileIn, fileOut):
-    #     '''
-    #     :param fileIn: name of csv file
-    #     :param fileOut: name of new arff file
-    #     :return:
-    #     '''
-    #     dataIn = os.path.join(self.dataDir, fileIn)
-    #     dataOut = os.path.join(self.dataDir, fileOut)
-    #     logger.info('[%s] : [INFO] Starting conversion of %s to %s', datetime.fromtimestamp(time.time()).strftime(log_format), dataIn, dataOut)
-    #     try:
-    #         jvm.start()
-    #         convertCsvtoArff(dataIn, dataOut)
-    #     except Exception as inst:
-    #         pass
-    #     finally:
-    #         logger.error('[%s] : [ERROR] Exception occured while converting to arff with %s and %s', datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
-    #         jvm.stop()
-    #     logger.info('[%s] : [INFO] Finished conversion of %s to %s', datetime.fromtimestamp(time.time()).strftime(log_format), dataIn, dataOut)
+    
 
     def normalize(self, dataFrame):
         '''
