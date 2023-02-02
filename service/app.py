@@ -6,11 +6,12 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 from ede_service_logger import log, handler, consoleHandler
 
 
-
 app = Flask("ede-serrano")
 # api = Api(app, version='0.0.1', title='Serrano Event Detection Engine',
 #           description="RESTful API for the Serrano Event Detection Engine",
 #           )
+
+
 app.config.update({
     'APISPEC_SPEC': APISpec(
         title='Serrano EDE REST API',

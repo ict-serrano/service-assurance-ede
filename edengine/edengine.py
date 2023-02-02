@@ -15,7 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from edeconnector import *
+from edeconnector import Connector
 from edepoint.edepoint import EdePoint
 from util import queryParser, nodesParse, str2Bool, cfilterparse, rfilterparse, pointThraesholds, parseDelay, parseMethodSettings, ut2hum, checkFile, log_format
 from .threadRun import EdeDetectThread, EdePointThread, EdeTrainThread
