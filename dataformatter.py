@@ -810,7 +810,7 @@ class DataFormatter:
             return data
         if scaler_type is None:
             scaler_type = {"StandardScaler": {"copy": True, "with_mean": True, "with_std": True}}
-            logger.warning('[{}] : [WARN] No user defined scaler using default'.format(datetime.fromtimestamp(time.time()).strftime(log_format), scaler_type))
+            logger.warning('[{}] : [WARN] No user defined scaler using default: {}'.format(datetime.fromtimestamp(time.time()).strftime(log_format), str(scaler_type)))
         scaler_name = list(scaler_type.keys())[-1]
         scaler_attr = list(scaler_type.values())[-1]
         logger.info('[{}] : [INFO] Scaler set to {} with parameters {}.'.format(datetime.fromtimestamp(time.time()).strftime(log_format), scaler_name, scaler_attr))
