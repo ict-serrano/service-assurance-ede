@@ -52,7 +52,7 @@ from util import str2Bool, log_format
 import glob
 from util import ut2hum
 import shap
-from evolutionary_search import EvolutionaryAlgorithmSearchCV
+from ededeap import EvolutionaryAlgorithmSearchCV
 from edetensorflow.edetensor import dnn_aspide
 import itertools
 

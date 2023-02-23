@@ -294,6 +294,20 @@ def main(argv,
         except Exception:
             logger.warning('[{}] : [WARN] Kafka Endpoint not set.'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), settings.prkafkaendpoint))
+    # Grafana settings
+    if settings.grafanaurl is None:
+        try:
+            settings.grafanaurl = readCnf['Connector']['GrafanaUrl']
+            if settings.grafanaurl == 'None':
+                settings.grafanaurl = None
+            else:
+                settings.grafanatoken = readCnf['Connector']['GrafanaToken']
+                settings.grafanatag = readCnf['Connector']['GrafanaTag']
+            logger.info('[{}] : [INFO] Grafana Endpoint set to  {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings.grafanaurl))
+        except:
+            logger.warning('[{}] : [WARN] Grafana Endpoint not set.'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
 
     if settings["nodes"] is None:
         try:
