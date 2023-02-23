@@ -47,7 +47,6 @@ def maximize(
     gene_crossover_prob=0.5,
     tournament_size=3,
     generations_number=10,
-    gene_type=None,
     n_jobs=1,
     error_score="raise",
 ):
