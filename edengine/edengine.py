@@ -15,12 +15,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from edeconnector import Connector
+from edeconnector import Connector, logger, datetime, time
 from edepoint.edepoint import EdePoint
 from util import queryParser, nodesParse, str2Bool, cfilterparse, rfilterparse, pointThraesholds, parseDelay, parseMethodSettings, ut2hum, checkFile, log_format
 from .threadRun import EdeDetectThread, EdePointThread, EdeTrainThread
 from .multiprocRun import EdeDetectProcess, EdePointProcess, EdeTrainProcess
 from time import sleep
+import sys
+import os
 import tempfile
 from edescikit import edescilearncluster as sede
 from edescikit import edescilearnclassification as cede
@@ -53,7 +55,10 @@ class EDEngine:
         self.prKafkaEndpoint = settingsDict['prkafkaendpoint']
         self.prKafkaPort = settingsDict['prkafkaport']
         self.prKafkaTopic = settingsDict['prkafkatopic']
-        self.dmonPort = settingsDict['dmonPort']
+        self.grafana_url = settingsDict['grafanaurl']
+        self.grafana_credentials = settingsDict['grafanatoken']
+        self.grafana_tag = settingsDict['grafanatag']
+        self.EDEPort = settingsDict['EDEPort']
         self.index = settingsDict['index']
         self.tfrom = settingsDict['from']
         self.to = settingsDict['to']
@@ -116,7 +121,7 @@ class EDEngine:
         self.edeConnector = Connector(esEndpoint=self.esendpoint,
                                       prEndpoint=self.prendoint,
                                       MInstancePort=self.MPort,
-                                      dmonPort=self.dmonPort,
+                                      dmonPort=self.EDEPort,
                                       index=self.index,
                                       prKafkaEndpoint=self.prKafkaEndpoint,
                                       prKafkaPort=self.prKafkaPort,

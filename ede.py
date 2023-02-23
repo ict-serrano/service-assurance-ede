@@ -63,7 +63,7 @@ def main(argv,
     settings.augmentation = None  # augmentation including scaler and user defined methods
     settings.detectionscaler = None
     settings.MPort = 9090
-    settings.dmonPort = 5001
+    settings.EDEPort = 5001
     settings.index = "logstash-*"
     settings["from"] = None
     settings.to = None
@@ -268,7 +268,6 @@ def main(argv,
         except:
             logger.warning('[%s] : [WARN] PMDS not set in conf',
                                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
-
     elif settings['esendpoint'] is None:
         try:
             logger.info('[{}] : [INFO] Monitoring ES Backend endpoint in config {}'.format(
@@ -451,7 +450,7 @@ def main(argv,
             logger.info('[{}] : [INFO] Local datasource set to default'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format)))
             settings['local'] = None
-            if settings['esendpoint'] is None and settings['prendpoint'] is None:
+            if settings['esendpoint'] is None and settings['prendpoint'] is None and settings['pmdsendpoint'] is None:
                 logger.error('[{}] : [ERROR] No valid datasource set! Exiting ...'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format)))
                 sys.exit(1)
@@ -971,13 +970,13 @@ def main(argv,
                     datetime.fromtimestamp(time.time()).strftime(log_format), settings['resetindex'])
 
     try:
-        settings['dmonPort'] = readCnf['Connector']['dmonport']
-        logger.info('[{}] : [INFO] DMon Port is set to {}'.format(
+        settings['EDEPort'] = readCnf['Connector']['EDEPort']
+        logger.info('[{}] : [INFO] EDEPort is set to {}'.format(
             datetime.fromtimestamp(time.time()).strftime(log_format),
-            settings['dmonPort']))
+            settings['EDEPort']))
     except Exception:
-        logger.info('[%s] : [INFO] DMon Port is set to %s"',
-                    datetime.fromtimestamp(time.time()).strftime(log_format), str(settings['dmonPort']))
+        logger.info('[%s] : [INFO] EDEPort is set to %s"',
+                    datetime.fromtimestamp(time.time()).strftime(log_format), str(settings['EDEPort']))
 
     try:
         settings['training'] = readCnf['Detect']['training']
@@ -1067,7 +1066,7 @@ def main(argv,
     # print("Conf file -> %s" %readCnf)
     # print("Settings  -> %s" %settings)
 
-    engine = aspideedengine.EDEngine(settings,
+    engine = edengine.EDEngine(settings,
                                      dataDir=dataDir,
                                      modelsDir=modelsDir,
                                      queryDir=queryDir)

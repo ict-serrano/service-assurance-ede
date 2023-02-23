@@ -28,7 +28,8 @@ import json
 import time
 from requests.auth import HTTPBasicAuth
 from util import log_format
-
+from joblib import Parallel, delayed
+from tqdm import tqdm
 
 class Connector:
     def __init__(self,
@@ -41,7 +42,11 @@ class Connector:
                  index="logstash-*",
                  prKafkaEndpoint=None,
                  prKafkaPort=9092,
-                 prKafkaTopic='edetopic'):
+                 prKafkaTopic='edetopic',
+                 srTelemetryPMDS=None,
+                 central_telemetry_handler='http://central-telemetry.services.cloud.ict-serrano.eu/',
+                 enhanced_telemetry_agent='http://85.120.206.26:30090'
+                 ):
         self.dataDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         if esEndpoint is None:
             self.esInstance = None

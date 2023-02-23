@@ -322,7 +322,8 @@ class SciCluster:
                 dpredict = 0
                 logger.warning('[{}] : [WARN] DataFrame is empty with shape {} '.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), str(data.shape)))
-        if list(np.unique(dpredict)) == [0, 1] or isinstance(smodel, pyod.models.iforest.IForest):
+        from pyod.models.iforest import IForest  # pyod.models.iforest.IForest
+        if list(np.unique(dpredict)) == [0, 1] or isinstance(smodel, IForest):
             anomaly_label = 1
         else:
             anomaly_label = -1
