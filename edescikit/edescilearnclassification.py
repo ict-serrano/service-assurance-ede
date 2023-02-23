@@ -277,8 +277,12 @@ class SciClassification:
             count = 0 # todo merge filtering of dpred detection; related to np.argwhere bug for pandas and __shap_analysis data refiltering
             for an in anomalyArray:
                 anomalies = {}
-                anomalies['utc'] = int(data.iloc[an[0]].name)
-                anomalies['hutc'] = ut2hum(int(data.iloc[an[0]].name))
+                if pd._libs.tslibs.timestamps.Timestamp == type(data.iloc[an[0]].name):
+                    anomalies['utc'] = data.iloc[an[0]].name.timestamp()
+                    anomalies['hutc'] = str(data.iloc[an[0]].name)
+                else:
+                    anomalies['utc'] = int(data.iloc[an[0]].name)
+                    anomalies['hutc'] = ut2hum(int(data.iloc[an[0]].name))
                 anomalies['type'] = str(dpredict[an[0]])
                 if explainer:
                     anomalies['analysis'] = self.__shap_values_processing(explainer=explainer,

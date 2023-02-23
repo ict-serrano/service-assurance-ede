@@ -341,8 +341,12 @@ class SciCluster:
             count = 0
             for an in anomalyArray:
                 anomalies = {}
-                anomalies['utc'] = int(data.iloc[an[0]].name)
-                anomalies['hutc'] = ut2hum(int(data.iloc[an[0]].name))
+                if pd._libs.tslibs.timestamps.Timestamp == type(data.iloc[an[0]].name):
+                    anomalies['utc'] = data.iloc[an[0]].name.timestamp()
+                    anomalies['hutc'] = str(data.iloc[an[0]].name)
+                else:
+                    anomalies['utc'] = int(data.iloc[an[0]].name)
+                    anomalies['hutc'] = ut2hum(int(data.iloc[an[0]].name))
                 if shap_values_p:
                     anomalies['analysis'] = self.__shap_force_layout(shap_values=shap_values,
                                                                      instance=count)

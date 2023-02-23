@@ -714,6 +714,126 @@ class DataFormatter:
             logger.info('[{}] : [INFO] PR query dataframe persisted to {}'.format(
                     datetime.fromtimestamp(time.time()).strftime(log_format), self.dataDir))
         return df
+    
+    def sr_pmds_to_df(self,
+                      resp,
+                      node_id='node_name'):
+        """
+        Convert Serrano PMDS response to dataframe
+        :param resp: response from node, pods query
+        :param node_id: name of field for unique identifier for nodes, can be node or node_id
+        :return: pandas dataframe
+        """
+        c_data = {}
+        for e in resp:
+            if f"""{e['_field']}_{e[node_id]}""" in c_data.keys():
+                c_data[f"""{e['_field']}_{e[node_id]}"""].append((pd.to_datetime(e['_time']), e['_value']))
+            else:
+                c_data[f"""{e['_field']}_{e[node_id]}"""] = [(pd.to_datetime(e['_time']), e['_value'])]
+
+        list_df = []
+        for k, v in c_data.items():
+            list_df.append(pd.DataFrame(v, columns=[f'time_{k}', k]))
+
+        df_central = pd.concat(list_df, axis=1, join='inner')
+        # Timestamp columns to drop
+        t_columns = df_central.filter(regex='^time', axis=1).columns
+        # TODO calculate mean timestamp for each row
+        df_central['time'] = df_central[
+            df_central.filter(regex='^time', axis=1).columns[0]]  # regex with begin anchor, $ for end anchor
+        df_central.drop(t_columns, axis=1, inplace=True)
+        # df_central.set_index('time', inplace=True)
+        return df_central
+
+    def sr_pmds_list_to_df(self,
+                           resp_list,
+                           checkpoint=False,
+                           detect=False,
+                           ):
+        """
+        Convert Serrano PMDS response to dataframe
+        :param resp_list: list of responses from node, pods query
+        :return: pandas dataframe
+        """
+        df_list = []
+        for resp in resp_list:
+            df_list.append(self.sr_pmds_to_df(resp))
+        # Check if all dataframes have the same shape
+        if all([set(df_list[0].shape == set(df.shape) for df in df_list)]):
+            df = pd.concat(df_list, axis=1)
+            df = self.__sr_pmds_df_index_fix(df)
+            if checkpoint:
+                if detect:
+                    pr = "pmds_data_detect.csv"
+                else:
+                    pr = "pmds_data.csv"
+                pmds_csv_loc = os.path.join(self.dataDir, pr)
+                df.to_csv(pmds_csv_loc, index=True)
+                logger.info('[{}] : [INFO] PMDS query dataframe persisted to {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), self.dataDir))
+        else:
+            logger.warning('[{}] : [WARN] Dataframes do not have the same shape. Returning empty dataframe.'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+            df = pd.DataFrame()
+        return df
+
+    def sr_cth_metrics_to_df(self, resp_metrics):
+        time_st = []
+        metrics_dict = {}
+        if 'error' in resp_metrics.keys():
+            logger.error('[{}] : [ERROR] Serrano CTH failed to provide metrics, '
+                         'returning empty dataframe ...'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+            return pd.DataFrame()
+        try:
+            for e in resp_metrics['metrics']:
+                time_st.append(e['timestamp'])
+                for n in e['state']['Nodes']:
+                    node_name = n['node_name']
+                    for k, v in n.items():
+                        if k == 'node_cpus':
+                            for cp in v:
+                                for k_cp, v_cp in cp.items():
+                                    if k_cp == 'label':
+                                        continue
+                                    metric = f"{k}_{cp['label']}_{k_cp}_{node_name}"
+                                    if metric in metrics_dict.keys():
+                                        metrics_dict[metric].append(v_cp)
+                                    else:
+                                        metrics_dict[metric] = [v_cp]
+                        else:
+                            if k == 'node_name':
+                                continue
+                            metric = f"{k}_{node_name}"
+                            if metric in metrics_dict.keys():
+                                metrics_dict[metric].append(v)
+                            else:
+                                metrics_dict[metric] = [v]
+            metrics_dict['time'] = time_st
+            df_cth_metrics = pd.DataFrame().from_dict(metrics_dict)
+            df_cth_metrics.set_index('time', inplace=True)
+            logger.info('[{}] : [INFO] CTH metrics dataframe created'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception as inst:
+            logger.error('[{}] : [ERROR] CTH metrics dataframe creation failed with {} and {}, returning empty dataframe ...'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            df_cth_metrics = pd.DataFrame()
+        return df_cth_metrics
+
+    def __sr_pmds_df_index_fix(self, df, index='time'):
+        cols = []
+        count = 0
+        for column in df.columns:
+            if column == index:
+                new_column = f'{index}_{count}'
+                if new_column == f'{index}_0':
+                    new_column = index
+                cols.append(new_column)
+                count += 1
+                continue
+            cols.append(column)
+        df.columns = cols
+        t_columns = df.filter(regex=f'^{index}_', axis=1).columns
+        df.drop(t_columns, axis=1, inplace=True)
+        # df.set_index('time', inplace=True)
+        return df
 
     def df2dict(self, df):
         kdf = df.set_index('key')

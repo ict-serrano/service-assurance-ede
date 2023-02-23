@@ -42,6 +42,18 @@ def main(argv,
     settings = Dict()
     settings.esendpoint = None
     settings.prendpoint = None
+    settings.cthendpoint = None # Serrano
+    settings.cthclusterid = None # Serrano
+    settings.cthstart = None # Serrano
+    settings.cthend = None # Serrano
+    settings.groups = ['general'] # Serrano
+    settings.etaendpoint = None # Serrano
+    settings.pmdsendpoint = None # Serrano
+    settings.pmdsstart = '-2h'  # Serrano
+    settings.pmdsend = ''  # Serrano
+    settings.pmdsgroups = ['general']  # Serrano
+    settings.pmdsclusterid = None  # Serrano
+    settings.pmdsnamespace = None # Serrano
     settings.Dask.SchedulerEndpoint = None  # "local"
     settings.Dask.SchedulerPort = 8787
     settings.Dask.EnforceCheck = False
@@ -194,8 +206,70 @@ def main(argv,
     except Exception:
         logger.warning('[%s] : [WARN] Index not set in conf setting to default value %s',
                             datetime.fromtimestamp(time.time()).strftime(log_format), settings['index'])
+    if settings['pmdsendpoint'] is None:
+        try:
+            logger.info('[{}] : [INFO] PMDS set to : {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                readCnf['Connector']['PMDS']['Endpoint']))
+            settings['pmdsendpoint'] = readCnf['Connector']['PMDS']['Endpoint']
+            try:
+                logger.info('[{}] : [INFO] PMDS CLuster ID set to : {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                    readCnf['Connector']['PMDS']['Cluster_id']))
+                settings['pmdsclusterid'] = readCnf['Connector']['PMDS']['Cluster_id']
+            except:
+                logger.warning('[%s] : [WARN] PMDS Cluster ID not set in conf setting to default value %s',
+                               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                               settings['pmdsclusterid'])
 
-    if settings['esendpoint'] is None:
+            try:
+                logger.info('[{}] : [INFO] PMDS Start set to  {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                    readCnf['Connector']['PMDS']['Start']))
+                settings['pmdsstart'] = readCnf['Connector']['PMDS']['Start']
+            except:
+                logger.warning('[%s] : [WARN] PMDS Start not set in conf setting to default value %s',
+                               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                               settings['pmdsstart'])
+
+            try:
+                logger.info('[{}] : [INFO] PMDS End set to {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                    readCnf['Connector']['PMDS']['End']))
+                settings['pmdsend'] = readCnf['Connector']['PMDS']['End']
+            except:
+                logger.warning('[%s] : [WARN] PMDS End not set in conf setting to default value %s',
+                               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                               settings['pmdsend'])
+            try:
+                logger.info('[{}] : [INFO] PMDS Metrics set to '.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                    readCnf['Connector']['PMDS']['Metrics']))
+                settings['pmdsmetrics'] = readCnf['Connector']['PMDS']['Metrics']
+            except:
+                pass
+
+            try:
+                logger.info('[{}] : [INFO] PMDS Groups set to {}'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                    readCnf['Connector']['PMDS']['Groups']))
+                settings['pmdsgroups'] = readCnf['Connector']['PMDS']['Groups']
+            except:
+                logger.warning('[%s] : [WARN] PMDS Groups not set in conf setting to default value %s', datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                               settings['pmdsgroups'])
+
+            try:
+                logger.info('[{}] : [INFO] PMDS Namespace set to {}'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), readCnf['Connector']['PMDS']['Namespace']))
+                settings['pmdsnamespace'] = readCnf['Connector']['PMDS']['Namespace']
+            except:
+                logger.warning('[%s] : [WARN] PMDS Namespace not set in conf setting to default value %s',
+                               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                               settings['pmdsnamespace'])
+
+        except:
+            logger.warning('[%s] : [WARN] PMDS not set in conf',
+                                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+
+    elif settings['esendpoint'] is None:
         try:
             logger.info('[{}] : [INFO] Monitoring ES Backend endpoint in config {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format),
@@ -222,64 +296,67 @@ def main(argv,
     else:
         logger.info('[%s] : [INFO] ES Backend Enpoint set to %s',
                             datetime.fromtimestamp(time.time()).strftime(log_format), settings['esendpoint'])
-    if settings["from"] is None:
-        try:
-            settings["from"] = readCnf['Connector']['From']
-            logger.info('[%s] : [INFO] From timestamp set to %s',
-                        datetime.fromtimestamp(time.time()).strftime(log_format),
-                        settings["from"])
-        except Exception:
-            # logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(
-            #     datetime.fromtimestamp(time.time()).strftime(log_format), settings['prendpoint']))
-            if settings['prendpoint'] is not None:
-                pass
-                # logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(datetime.fromtimestamp(time.time()).strftime(log_format), settings['prendpoint']))
-            else:
-                try:
-                    readCnf['Connector']['Local']  # todo check if local exists in conf (elegant solution is needed)
-                except Exception:
-                    logger.error('[%s] : [ERROR] From timestamp not set in conf or commandline!',
-                             datetime.fromtimestamp(time.time()).strftime(log_format))
-                    sys.exit(1)
+    if settings['pmdsendpoint']:
+        pass
     else:
-        logger.info('[%s] : [INFO] From timestamp set to %s',
-                    datetime.fromtimestamp(time.time()).strftime(log_format), settings['from'])
-
-    if settings["to"] is None:
-        try:
-            settings["to"] = readCnf['Connector']['to']
-            logger.info('[%s] : [INFO] To timestamp set to %s',
-                                datetime.fromtimestamp(time.time()).strftime(log_format),
-                                settings["to"])
-        except Exception:
-            if settings['prendpoint'] is not None:
-                pass
-            else:
-                try:
-                    readCnf['Connector']['Local']  # todo check if local exists in conf (elegant solution is needed)
-                except Exception:
-                    logger.error('[%s] : [ERROR] To timestamp not set in conf or commandline!',
-                                         datetime.fromtimestamp(time.time()).strftime(log_format))
-                    sys.exit(1)
-    else:
-        logger.info('[%s] : [INFO] To timestamp set to %s',
-                    datetime.fromtimestamp(time.time()).strftime(log_format), settings['to'])
-
-    if settings['query'] is None:
-        try:
-            settings['query'] = readCnf['Connector']['Query']
-            logger.info('[%s] : [INFO] Query set to %s',
-                                datetime.fromtimestamp(time.time()).strftime(log_format),
-                                settings['query'])
-        except Exception:
-            if settings['prendpoint'] is not None:
-                pass
-            logger.error('[%s] : [ERROR] Query not set in conf or commandline!',
+        if settings["from"] is None:
+            try:
+                settings["from"] = readCnf['Connector']['From']
+                logger.info('[%s] : [INFO] From timestamp set to %s',
+                            datetime.fromtimestamp(time.time()).strftime(log_format),
+                            settings["from"])
+            except Exception:
+                # logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(
+                #     datetime.fromtimestamp(time.time()).strftime(log_format), settings['prendpoint']))
+                if settings['prendpoint'] is not None:
+                    pass
+                    # logger.info('[{}] : [INFO] PR Backend endpoint set to {}'.format(datetime.fromtimestamp(time.time()).strftime(log_format), settings['prendpoint']))
+                else:
+                    try:
+                        readCnf['Connector']['Local']  # todo check if local exists in conf (elegant solution is needed)
+                    except Exception:
+                        logger.error('[%s] : [ERROR] From timestamp not set in conf or commandline!',
                                  datetime.fromtimestamp(time.time()).strftime(log_format))
-            sys.exit(1)
-    else:
-        logger.info('[%s] : [INFO] Query set to %s',
-                           datetime.fromtimestamp(time.time()).strftime(log_format), settings['query'])
+                        sys.exit(1)
+        else:
+            logger.info('[%s] : [INFO] From timestamp set to %s',
+                        datetime.fromtimestamp(time.time()).strftime(log_format), settings['from'])
+
+        if settings["to"] is None:
+            try:
+                settings["to"] = readCnf['Connector']['to']
+                logger.info('[%s] : [INFO] To timestamp set to %s',
+                                    datetime.fromtimestamp(time.time()).strftime(log_format),
+                                    settings["to"])
+            except Exception:
+                if settings['prendpoint'] is not None:
+                    pass
+                else:
+                    try:
+                        readCnf['Connector']['Local']  # todo check if local exists in conf (elegant solution is needed)
+                    except Exception:
+                        logger.error('[%s] : [ERROR] To timestamp not set in conf or commandline!',
+                                             datetime.fromtimestamp(time.time()).strftime(log_format))
+                        sys.exit(1)
+        else:
+            logger.info('[%s] : [INFO] To timestamp set to %s',
+                        datetime.fromtimestamp(time.time()).strftime(log_format), settings['to'])
+
+        if settings['query'] is None:
+            try:
+                settings['query'] = readCnf['Connector']['Query']
+                logger.info('[%s] : [INFO] Query set to %s',
+                                    datetime.fromtimestamp(time.time()).strftime(log_format),
+                                    settings['query'])
+            except Exception:
+                if settings['prendpoint'] is not None:
+                    pass
+                logger.error('[%s] : [ERROR] Query not set in conf or commandline!',
+                                     datetime.fromtimestamp(time.time()).strftime(log_format))
+                sys.exit(1)
+        else:
+            logger.info('[%s] : [INFO] Query set to %s',
+                               datetime.fromtimestamp(time.time()).strftime(log_format), settings['query'])
 
     if settings.prkafkaendpoint is None:
         try:

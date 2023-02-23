@@ -85,6 +85,12 @@ class Connector:
                 logger.error('[{}] : [ERROR] EDE Kafka reporter failed with {} and {}'.format(
                     datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
                 self.producer = None
+        if srTelemetryPMDS is None:
+            self.srTelemetryPMDS = os.getenv('PMDS_SERVICE', 'http://pmds.services.cloud.ict-serrano.eu')
+        else:
+            self.srTelemetryPMDS = srTelemetryPMDS
+        self.central_telemetry_handler = central_telemetry_handler
+        self.enhanced_telemetry_agent = enhanced_telemetry_agent
 
     def pr_health_check(self):
         pr_target_health = '/-/healthy'
@@ -205,6 +211,153 @@ class Connector:
             sys.exit(2)
         return resp.json()
 
+    def __sr_pmds_service_query_nodes(self, cluster_uuid, **kwargs):
+        valid_query_params = ["group",
+                              "start",
+                              "stop",
+                              "node_name",
+                              "field_measurement",
+                              "format"]
+        query_params = {k: v for (k, v) in kwargs.items() if k in valid_query_params}
+        try:
+            res = requests.get(f"{self.srTelemetryPMDS}/api/v1/pmds/nodes/{cluster_uuid}", params=query_params)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to PMDS node endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            sys.exit(2)
+        return res.json()
+
+    def sr_pmds_service_query_deployments(self, cluster_uuid,
+                                            namespace,
+                                            **kwargs):
+        valid_query_params = ["start",
+                              "stop",
+                              "name",
+                              "format"]
+
+        query_params = {k: v for (k, v) in kwargs.items() if k in valid_query_params}
+        query_params["namespace"] = namespace
+        try:
+            res = requests.get(f"{self.srTelemetryPMDS}/api/v1/pmds/deployments/{cluster_uuid}", params=query_params)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to PMDS deployment endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            sys.exit(2)
+        return res
+
+    def __sr_pmds_service_query_pods(self, cluster_uuid, namespace, **kwargs):
+        valid_query_params = ["start",
+                              "stop",
+                              "name",
+                              "node_name",
+                              "format"]
+
+        query_params = {k: v for (k, v) in kwargs.items() if k in valid_query_params}
+        query_params["namespace"] = namespace
+
+        try:
+            res = requests.get(f"{self.srTelemetryPMDS}/api/v1/pmds/pods/{cluster_uuid}", params=query_params)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to PMDS pod endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            sys.exit(2)
+        return res.json()
+
+    def cth_inventory(self, cluster_uuid):
+        """
+        Get cluster inventory from Serrano Central Telemetry Handler
+        :param cluster_uuid:
+        :return: inventory dictionary
+        """
+        url_inv = f"{self.central_telemetry_handler}/api/v1/telemetry/central/cluster/inventory/{cluster_uuid}"
+        try:
+            resp = requests.get(
+                url_inv)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to CTH inventory endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            resp = {"error": "Exception has ocurred while connecting to CTH inventory endpoint"}
+        return resp
+
+    def sr_pmds_query(self, query_param):
+        '''
+        Executes PMDS query in parallel using joblib backend.
+        It parses the length of the arguments
+        ingroups and creates a job for each group.
+        It then executes the query in parallel and returns.
+
+        :param query_param: query parameters based on PMDS API
+        :return: list of responses in JSON format
+        '''
+        # cluster_uudi = query_param.pop('cluster_uuid')
+        groups = query_param.pop('groups')
+        if 'stop' in query_param:
+            if not query_param['stop']:
+                query_param.pop('stop')
+        n_jobs = len(groups)
+        querys = []
+        for group in groups:
+            query_param['group'] = group
+            querys.append(query_param.copy())
+        logger.info('[{}] : [INFO] EDE PMDS Executing parallel query with {} jobs'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), n_jobs))
+        resp_list = Parallel(n_jobs=n_jobs, backend='threading')(
+            delayed(self.__sr_pmds_service_query_nodes)(**query) for query in tqdm(querys))
+        return resp_list
+
+    def eta_status(self):
+        """
+        Get Enhanced telemetry agent status
+        :return:
+        """
+        url_telem_agent = f"{self.enhanced_telemetry_agent}/api/v1/telemetry/agent"
+        try:
+            resp_telem_agent = requests.get(url_telem_agent)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to ETA status endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            resp_telem_agent = {"error": "Exception has ocurred while connecting to ETA status endpoint"}
+        return resp_telem_agent
+
+    def cth_monitor(self, cluster_uuid):
+        """
+        Get cluster monitor from Serrano Central Telemetry Handler
+        :param cluster_uuid:
+        :return: monitor dictionary
+        """
+        url_mon = f"{self.central_telemetry_handler}/api/v1/telemetry/central/cluster/monitor/{cluster_uuid}"
+        try:
+            resp = requests.get(
+                url_mon)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to CTH monitor endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            resp = {"error": "Exception has ocurred while connecting to CTH monitor endpoint"}
+        return resp
+
+    def cth_metrics(self, cluster_uuid):
+        """
+        Get cluster metrics from Serrano Central Telemetry Handler
+        :param cluster_uuid:
+        :return: metrics dictionary
+        """
+        url_met = f"{self.central_telemetry_handler}/api/v1/telemetry/central/cluster/metrics/{cluster_uuid}"
+        try:
+            resp = requests.get(
+                url_met)
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to CTH metrics endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            resp = {"error": "Exception has ocurred while connecting to CTH metrics endpoint"}
+        return resp
+    
     def query(self,
               queryBody,
               allm=True,

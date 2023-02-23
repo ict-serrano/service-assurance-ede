@@ -37,6 +37,14 @@ class EDEngine:
                  queryDir):
         self.esendpoint = settingsDict['esendpoint']
         self.prendoint = settingsDict['prendpoint']
+        self.sr_pmds_end = settingsDict['pmdsendpoint'] # Serrano
+        self.sr_pmds_check = False # Serrano, used for checking if PMDS is online, once on startup
+        self.sr_cluster_id = settingsDict['pmdsclusterid'] # Serrano
+        self.sr_pmds_namespace = settingsDict['pmdsnamespace'] # Serrano
+        self.sr_pmds_group = settingsDict['pmdsgroups'] # Serrano
+        self.sr_pmds_start = settingsDict['pmdsstart'] # Serrano
+        self.sr_pmds_end = settingsDict['pmdsend'] # Serrano
+        self.sr_pmds_field_measurements = settingsDict['pmdsmetrics'] # Serrano
         self.daskScheduler = settingsDict['Dask']['SchedulerEndpoint']
         self.daskSchedulerPort = settingsDict['Dask']['SchedulerPort']
         self.daskEnforce = settingsDict['Dask']['EnforceCheck']
@@ -200,6 +208,18 @@ class EDEngine:
                 logger.warning('[{}] : [WARNING] Detected PR dropped targets: {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format),
                     targets['data']['droppedTargets'])) # TODO parse droped targets instead of dumping json to log
+        elif self.sr_pmds_end is not None:
+            if not self.sr_pmds_check:
+                logger.info('[{}] : [INFO] Checking connection to Serrano PMDS Backend ...'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                deployments = self.edeConnector.sr_pmds_service_query_deployments(cluster_uuid=self.sr_cluster_id,
+                                                                                  namespace=self.sr_pmds_namespace,
+                                                                                  start='-1m',
+                                                                                  format='raw'
+                                                                              )
+                if deployments.status_code != 200:
+                    logger.warning('[{}] : [WARN] Serrano PMDS Backend connection returned non-standard status code: {}'.format(
+                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), deployments.status_code))
         elif self.local is not None:
             logger.info('[{}] : [INFO] Set local data source: {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), self.local))
@@ -244,6 +264,21 @@ class EDEngine:
                 logger.error('[{}] : [ERROR] Failed to find  local training file {}'.format(
                     datetime.fromtimestamp(time.time()).strftime(log_format), self.local))
                 sys.exit(1)
+                
+        elif self.sr_pmds_end is not None:
+            checkpoint = str2Bool(self.checkpoint)
+            query_param = {
+                'cluster_uuid': self.sr_cluster_id,
+                'groups': self.sr_pmds_group,
+                'start': self.sr_pmds_start,
+                'stop': self.sr_pmds_end,
+                'format': 'raw',
+            }
+            r_pmds = self.edeConnector.sr_pmds_query(query_param)
+            logger.info('[{}] : [INFO] Fetching data from Serrano PMDS backend with query: {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), query_param))
+
+            df_qpr = self.dformat.sr_pmds_list_to_df(r_pmds, checkpoint=checkpoint, detect=detect)
         else:
             queryd = self.query
             checkpoint = str2Bool(self.checkpoint)
