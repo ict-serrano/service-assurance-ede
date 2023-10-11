@@ -82,13 +82,14 @@ class EDEPDF(FPDF):
     def print_page(self, image):
         # Generates the report
         if isinstance(image, int):
-            logger.warning('[{}] : [WARN] Received no image! Skipping ...'.format(datetime.fromtimestamp(time.time().strftime(log_format)))
+            logger.warning('[{}] : [WARN] Received no image! Skipping ...'.format(datetime.fromtimestamp(time.time().strftime(log_format))))
         else:
             try:
                 self.add_page()
                 self.page_body(image)
             except Exception as inst:
-                logger.error('[{}] : [ERROR] Exception while adding image! With {}, {}} ...'.format(datetime.fromtimestamp(time.time().strftime(log_format), type(inst), inst.args))
+                logger.error('[{}] : [ERROR] Exception while adding image! With {}, {}} ...'.format(datetime.
+                                                                                                    fromtimestamp(time.time().strftime(log_format), type(inst), inst.args)))
 
     def print_analysis_feature_plot(self, images, classif=False):
         self.add_page()

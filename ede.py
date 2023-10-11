@@ -60,6 +60,7 @@ def main(argv,
     settings.prkafkaendpoint = None
     settings.prkafkaport = 9092
     settings.prkafkatopic = "edetopic"
+    settings.grafanaurl = None
     settings.augmentation = None  # augmentation including scaler and user defined methods
     settings.detectionscaler = None
     settings.MPort = 9090

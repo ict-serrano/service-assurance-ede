@@ -1238,6 +1238,7 @@ class EDEngine:
                     else:
                         anomalies['method'] = self.detectmethod
                         anomalies['interval'] = self.qinterval
+                        anomalies['model'] = self.load
                         logger.info('[{}] : [DEBUG] Reporting detected anomalies: {}'.format(
                             datetime.fromtimestamp(time.time()).strftime(log_format), anomalies))
                         self.reportAnomaly(anomalies, dask=True)
