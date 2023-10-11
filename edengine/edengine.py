@@ -217,14 +217,20 @@ class EDEngine:
             if not self.sr_pmds_check:
                 logger.info('[{}] : [INFO] Checking connection to Serrano PMDS Backend ...'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                if self.sr_pmds_end is None:
+                    pmds_namspace = 'integration'
+                    logger.info('[{}] : [INFO] Serrano PMDS Backend not defined, using default: {}'.format(
+                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')), pmds_namspace)
+                else:
+                    pmds_namspace = self.sr_pmds_namespace
                 deployments = self.edeConnector.sr_pmds_service_query_deployments(cluster_uuid=self.sr_cluster_id,
-                                                                                  namespace=self.sr_pmds_namespace,
+                                                                                  namespace=pmds_namspace,
                                                                                   start='-1m',
                                                                                   format='raw'
                                                                               )
                 if deployments.status_code != 200:
-                    logger.warning('[{}] : [WARN] Serrano PMDS Backend connection returned non-standard status code: {}'.format(
-                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), deployments.status_code))
+                    logger.warning('[{}] : [WARN] Serrano PMDS Backend connection returned non-standard status code {} for namespace {}'.format(
+                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), deployments.status_code, pmds_namspace))
         elif self.local is not None:
             logger.info('[{}] : [INFO] Set local data source: {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), self.local))
@@ -279,10 +285,9 @@ class EDEngine:
                 'stop': self.sr_pmds_end,
                 'format': 'raw',
             }
-            r_pmds = self.edeConnector.sr_pmds_query(query_param)
             logger.info('[{}] : [INFO] Fetching data from Serrano PMDS backend with query: {}'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), query_param))
-
+            r_pmds = self.edeConnector.sr_pmds_query(query_param)
             df_qpr = self.dformat.sr_pmds_list_to_df(r_pmds, checkpoint=checkpoint, detect=detect)
         else:
             queryd = self.query
