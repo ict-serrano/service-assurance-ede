@@ -29,6 +29,7 @@ import time
 from requests.auth import HTTPBasicAuth
 from util import log_format
 from joblib import Parallel, delayed
+import backoff
 from tqdm import tqdm
 
 class Connector:
@@ -216,6 +217,11 @@ class Connector:
             sys.exit(2)
         return resp.json()
 
+    @backoff.on_exception(backoff.expo, requests.exceptions.RequestException,
+                          max_tries=60)
+    def __unreliable_connection_backoff(self, url, params=None):
+        res = requests.get(url, params=params)
+        return res
     def __sr_pmds_service_query_nodes(self, cluster_uuid, **kwargs):
         valid_query_params = ["group",
                               "start",
@@ -224,14 +230,38 @@ class Connector:
                               "field_measurement",
                               "format"]
         query_params = {k: v for (k, v) in kwargs.items() if k in valid_query_params}
+        # print(query_params)
         try:
             res = requests.get(f"{self.srTelemetryPMDS}/api/v1/pmds/nodes/{cluster_uuid}", params=query_params)
+            # print(res.status_code)
+            if res.status_code != 200:
+                logger.warning('[{}] : [WARN] Failed to fetch data from PMDS for {} with status code {} using fallback ...'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), query_params['group'], res.status_code))
+                res = self.__unreliable_connection_backoff(url=f"{self.srTelemetryPMDS}/api/v1/pmds/nodes/{cluster_uuid}", params=query_params)
+                # res = requests.get(f"{self.srTelemetryPMDS}/api/v1/pmds/nodes/{cluster_uuid}", params=query_params)
+                logger.info('[{}] : [INFO] Fetched data from PMDS for {} with status code {} using fallback ...'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), query_params['group'], res.status_code))
+                # print(res.status_code)
         except Exception as inst:
             logger.error(
                 '[{}] : [ERROR] Exception has ocurred while connecting to PMDS node endpoint with type {} at arguments {}'.format(
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
             sys.exit(2)
-        return res.json()
+        if res.status_code >= 500:
+            logger.error(
+                '[{}] : [ERROR] PMDS node endpoint returned with status code {} for group {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), res.status_code, query_params['group']))
+            # print(res.text)
+            # sys.exit(2)
+            return None
+        try:
+            res_json = res.json()
+        except Exception as inst:
+            logger.error('[{}] : [ERROR] Exception has ocurred for PMDS response type {} with {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            return None
+            # sys.exit(2)
+        return res_json
 
     def sr_pmds_service_query_deployments(self, cluster_uuid,
                                             namespace,
@@ -310,8 +340,15 @@ class Connector:
             querys.append(query_param.copy())
         logger.info('[{}] : [INFO] EDE PMDS Executing parallel query with {} jobs'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), n_jobs))
-        resp_list = Parallel(n_jobs=n_jobs, backend='threading')(
-            delayed(self.__sr_pmds_service_query_nodes)(**query) for query in tqdm(querys))
+        # print(querys)
+        try:
+            resp_list = Parallel(n_jobs=n_jobs, backend='threading')(
+                delayed(self.__sr_pmds_service_query_nodes)(**query) for query in tqdm(querys))
+        except Exception as inst:
+            logger.error(
+                '[{}] : [ERROR] Exception has ocurred while connecting to PMDS node endpoint with type {} at arguments {}'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+            sys.exit(2)
         return resp_list
 
     def eta_status(self):
