@@ -363,7 +363,7 @@ class RQWorkers(Resource, MethodResource):
             log.warning('Maximum number of aug workers reached: {}'.format(logic_cpu))
             resp.status_code = 200
             return resp
-        subprocess.Popen(['python', 'ed_rq_worker.py'])
+        subprocess.Popen(['python', 'ede_rq_worker.py'])
         log.info("Starting EDE RQ worker {}".format(len(list_workers)))
         resp = jsonify({'status': 'workers started'})
         resp.status_code = 201
