@@ -7,15 +7,11 @@ from ede_service_logger import log, handler, consoleHandler
 
 
 app = Flask("ede-serrano")
-# api = Api(app, version='0.0.1', title='Serrano Event Detection Engine',
-#           description="RESTful API for the Serrano Event Detection Engine",
-#           )
-
 
 app.config.update({
     'APISPEC_SPEC': APISpec(
         title='Serrano EDE REST API',
-        version='v0.1',
+        version='v0.2',
         plugins=[MarshmallowPlugin()],
         openapi_version='2.0.0'
     ),

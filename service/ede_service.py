@@ -1,6 +1,6 @@
 """
 
-Copyright 2022, West University of Timisoara, Timisoara, Romania
+Copyright 2023, West University of Timisoara, Timisoara, Romania
 Developers:
  * Gabriel Iuhasz, iuhasz.gabriel@info.uvt.ro
 
@@ -34,11 +34,12 @@ import psutil
 from redis import Redis
 import rq
 from rq.job import Job
+from rq.command import send_stop_job_command
+from rq import cancel_job
 
 
 
 #directory locations
-tmpDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../templates')
 data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data')
 models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../models')
 conf_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../conf')
@@ -65,7 +66,16 @@ queue = rq.Queue(r_name, connection=r_connection)
 @doc(description='EDE Status descriptor', tags=['status'])
 class EDEStatus(Resource, MethodResource):
     def get(self):
-        return "Current status of EDE workload and dask details"
+        import sklearn, shap
+        resp = jsonify({
+            'status': 'ok',
+            'python_version': sys.version,
+            'platform': platform.platform(),
+            'sklearn_version': sklearn.__version__,
+            'shap_version': shap.__version__
+        })
+        resp.status_code = 200
+        return resp
 
 
 @doc(description='Global config for EDE', tags=['config'])
@@ -357,17 +367,35 @@ class RQWorkers(Resource, MethodResource):
     def post(self):
         list_workers = get_list_workers()
         logic_cpu = psutil.cpu_count(logical=True)
-        if len(list_workers) > logic_cpu - 1:
+        worker_threshold = os.getenv('WORKER_THRESHOLD', 2)
+        if len(list_workers) > (logic_cpu - 1)*worker_threshold:
             resp = jsonify({'warning': 'maximum number of workers active!',
-                                'workers': logic_cpu})
+                                'workers': logic_cpu,
+                           'threshold': worker_threshold})
             log.warning('Maximum number of aug workers reached: {}'.format(logic_cpu))
             resp.status_code = 200
             return resp
-        subprocess.Popen(['python', 'ede_rq_worker.py'])
+        p = subprocess.Popen(['python', 'ede_rq_worker.py'])
+        sb_pid = p.pid
         log.info("Starting EDE RQ worker {}".format(len(list_workers)))
-        resp = jsonify({'status': 'workers started'})
-        resp.status_code = 201
-        return resp
+        if check_pid(sb_pid):
+            try:
+                queue.get_job_ids()
+            except Exception as inst:
+                log.error(f'Error connecting to redis with {type(inst)} and {inst.args}')
+                resp = jsonify({
+                    'error': f'Error connecting to redis with {type(inst)} and {inst.args}'
+                })
+                resp.status_code = 500
+                return resp
+            resp = jsonify({'status': 'worker started',
+                            'pid': sb_pid})
+            resp.status_code = 201
+            return resp
+        else:
+            resp = jsonify({'error': 'worker failed to start'})
+            resp.status_code = 500
+            return resp
 
     def delete(self):
         list_workers = get_list_workers()
@@ -447,6 +475,43 @@ class RQEngineJobQueueStatus(Resource, MethodResource):
         resp.status_code = 200
         return resp
 
+    def delete(self):
+        try:
+            jobs = queue.get_job_ids()
+        except Exception as inst:
+            log.error(f'Error connecting to redis with {type(inst)} and {inst.args}')
+            resp = jsonify({
+                'error': f'Error connecting to redis with {type(inst)} and {inst.args}'
+            })
+            resp.status_code = 500
+            return resp
+        for rjob in jobs:
+            try:
+                job = Job.fetch(rjob, connection=r_connection)
+            except:
+                log.error("No job with id {}".format(rjob))
+                response = {'error': 'no such job'}
+                return response
+            job.delete()
+
+        failed_registry = queue.failed_job_registry
+        started_registry = queue.started_job_registry
+
+        for rjob in failed_registry.get_job_ids():
+            failed_registry.remove(rjob, delete_job=True)
+
+        for rjob in started_registry.get_job_ids():
+            send_stop_job_command(r_connection, rjob)
+            cancel_job(rjob, connection=r_connection)
+            started_registry.remove(rjob, delete_job=True)
+        resp = jsonify(
+            {
+                'message': 'All jobs deleted'
+            }
+        )
+        resp.status_code = 200
+        return resp
+
 
 @doc(description='EDE Service Job details', tags=['engine'])
 class RQEngineJobStatus(Resource, MethodResource):
@@ -468,6 +533,21 @@ class RQEngineJobStatus(Resource, MethodResource):
                             'meta': meta})
         response.status_code = 200
         return response
+    def delete(self, job_id):
+        try:
+            job = Job.fetch(job_id, connection=r_connection)
+        except Exception as inst:
+            log.error("No job with id {}".format(job_id))
+            response = jsonify({'error': 'no job',
+                                'job_id': job_id})
+            response.status_code = 404
+            return response
+        send_stop_job_command(r_connection, job_id)
+        job.delete()
+        response = jsonify({'status': 'deleted',
+                            'job_id': job_id})
+        response.status_code = 200
+        return response
 
 
 @doc(description="Execution platform readiness support", tags=['readiness', 'liveness'])
@@ -479,6 +559,7 @@ class ReadinessProbing(Resource, MethodResource):
 
 
 # Rest API routing
+api.add_resource(EDEStatus, '/', '/v1/status')
 api.add_resource(Config, '/v1/config')
 api.add_resource(ConnectorConfig, '/v1/config/connector')
 api.add_resource(FilterConfig, '/v1/config/filter')
@@ -498,6 +579,7 @@ api.add_resource(ExecuteInference, '/v1/detect')
 api.add_resource(ReadinessProbing, '/ping')
 
 # Rest API docs, Swagger
+docs.register(EDEStatus)
 docs.register(Config)
 docs.register(ConnectorConfig)
 docs.register(FilterConfig)
