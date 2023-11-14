@@ -36,8 +36,8 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.cluster import DBSCAN
 from sklearn.metrics import make_scorer, SCORERS, get_scorer, classification_report, confusion_matrix, accuracy_score
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+import tensorflow as tf
+from scikeras.wrappers import KerasClassifier
 from imblearn.metrics import classification_report_imbalanced
 from yellowbrick.model_selection import LearningCurve, ValidationCurve, RFECV
 from yellowbrick.classifier import PrecisionRecallCurve, ROCAUC
@@ -937,8 +937,8 @@ class SciClassification:
                         y_oh_train = pd.get_dummies(ytrain, prefix='target')
                         y_oh_test = pd.get_dummies(ytest, prefix='target')
 
-                        early_stopping = EarlyStopping(monitor="loss", patience=3)  # early stop patience
-                        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2,
+                        early_stopping = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=3)  # early stop patience
+                        reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.2,
                                                       patience=5, min_lr=0.00001)
                         model = KerasClassifier(build_fn=wrapper_dnn_aspide, verbose=0, callbacks=[early_stopping, reduce_lr])
                         history = model.fit(np.asarray(Xtrain), np.asarray(y_oh_train),

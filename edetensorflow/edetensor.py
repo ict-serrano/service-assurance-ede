@@ -17,12 +17,13 @@ limitations under the License.
 """
 
 import tensorflow as tf
-from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
-from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense, Conv1D, Dropout, LSTM, SimpleRNN
-from tensorflow.keras.optimizers import Adam, Adagrad, SGD
-from tensorflow.keras.utils import plot_model
+# from tensorflow.keras.wrappers.scikit_learn import KerasClassifier
+from scikeras.wrappers import KerasClassifier
+# from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+# from tensorflow.keras.models import Sequential
+# from tensorflow.keras.layers import Dense, Conv1D, Dropout, LSTM, SimpleRNN
+# from tensorflow.keras.optimizers import Adam, Adagrad, SGD
+# from tensorflow.keras.utils import plot_model
 import numpy as np
 import pandas as pd
 import os
@@ -46,32 +47,32 @@ def dnn_aspide(n_input_shape,
     # print(np.asarray(X).shape[1], len(y_oh.nunique()))
 
     n_inputs, n_outputs = n_input_shape, n_output_shape
-    model = Sequential()
+    model = tf.keras.models.Sequential()
     # model.add(Conv1D(filters=32, kernel_size=2,activation=activation_1, input_shape=n_inputs, kernel_initializer=kernel_init))
-    model.add(Dense(layer_0, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
+    model.add(tf.keras.layers.Dense(layer_0, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
     if drop:
-      model.add(Dropout(drop))
+      model.add(tf.keras.layers.Dropout(drop))
     if layer_1:
-      model.add(Dense(layer_1, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
+      model.add(tf.keras.layers.Dense(layer_1, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
       if drop:
-        model.add(Dropout(drop))
+        model.add(tf.keras.layers.Dropout(drop))
     if layer_2:
-      model.add(Dense(layer_2, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
+      model.add(tf.keras.layers.Dense(layer_2, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
       if drop:
-        model.add(Dropout(drop))
+        model.add(tf.keras.layers.Dropout(drop))
     if layer_3:
-      model.add(Dense(layer_2, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
+      model.add(tf.keras.layers.Dense(layer_2, input_dim=n_inputs, kernel_initializer=kernel_init, activation=activation_1))
       if drop:
-        model.add(Dropout(drop))
-    model.add(Dense(n_outputs, activation=out_activation))
+        model.add(tf.keras.layers.Dropout(drop))
+    model.add(tf.keras.layers.Dense(n_outputs, activation=out_activation))
     if optimizer == 'adam':
-      opt = Adam(learning_rate=learning_r)
+      opt = tf.keras.optimizers.Adam(learning_rate=learning_r)
     elif optimizer == 'adagrad':
-      opt = Adagrad(learning_rate=learning_r)
+      opt = tf.keras.optimizers.Adagrad(learning_rate=learning_r)
     elif optimizer == 'sgd':
-      opt = SGD(learning_rate=learning_r)
+      opt = tf.keras.optimizers.SGD(learning_rate=learning_r)
     else:
-      opt = Adam(learning_rate=0.01)
+      opt = tf.keras.optimizers.Adam(learning_rate=0.01)
     model.compile(optimizer=opt, loss=loss, metrics=['accuracy', 'categorical_crossentropy', 'binary_crossentropy'])
 
     return model
@@ -109,8 +110,8 @@ def ede_dnn(dnn_model,
     y_oh_train = pd.get_dummies(ytrain, prefix='target')
     y_oh_test = pd.get_dummies(ytest, prefix='target')
 
-    early_stopping = EarlyStopping(monitor="loss", patience=patience)# early stop patience
-    reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=factor,
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor="loss", patience=patience)# early stop patience
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=factor,
                                 patience=5, min_lr=0.00001)
     model = KerasClassifier(build_fn=dnn_model, verbose=verbose, callbacks=[early_stopping, reduce_lr])
     history = model.fit(np.asarray(Xtrain), np.asarray(y_oh_train),
