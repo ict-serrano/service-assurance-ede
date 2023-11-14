@@ -1,40 +1,66 @@
 Connector:
-  PREndpoint: 194.102.62.155 #hal720m.sage.ieat.ro
+  PMDS:
+    Endpoint: http://pmds.services.cloud.ict-serrano.eu
+    Cluster_id: "7628b895-3a91-4f0c-b0b7-033eab309891"
+    Start: -6h
+    End: ''
+    Groups:
+    - general
+    - cpu
+    - memory
+    - network
+    - storage
+    Namespace: uvt-aspataru
   Dask:
-    SchedulerEndpoint: local
-    Scale: 3
-    SchedulerPort: 8787
-    EnforceCheck: False
-  MPort: 9200 # Moitoring port
-  KafkaEndpoint: 10.9.8.136
+    SchedulerEndpoint: local # if not local add DASK schedueler endpoint
+    Scale: 3 # Number of workers if local otherwise ignored
+    SchedulerPort: 8787 # This is the default point
+    EnforceCheck: False # Irrelevant for local
+  KafkaEndpoint: 85.120.206.118
   KafkaPort: 9092
   KafkaTopic: edetopic
-  Query: {"query": '{__name__=~"node.+"}[1m]'}
+  GrafanaUrl: http://85.120.206.26:32000
+  GrafanaToken: eyJrIjoiMzY4SUM4bjZmMGNpeHBWS3hONWpXeTdyblJiaFhVRVoiLCJuIjoiZWRlX2ludGVncmF0aW9uIiwiaWQiOjF9
+  GrafanaTag: ede_test
   MetricsInterval: "1m" # Metrics datapoint interval definition
   QSize: 0
   Index: time
-  QDelay: 10s # Polling period for metrics fetching
-#  Local: /Users/Gabriel/Documents/workspaces/Event-Detection-Engine/data/demo_data.csv # Define the path to the local file for training
-
-Mode:
-  Training: False
-  Validate: False
-  Detect: True
-
-Filter:
-  Fillna: True # fill none values with 0
-  Dropna: True # delete columns woth none values
-  DColumns:
-    Dlist: /Users/Gabriel/Documents/workspaces/Event-Detection-Engine/data/low_variance.yaml
-
+  QDelay: "10s" # Polling period for metrics fetching
 
 Augmentation:
   Scaler: # if not used set to false
     StandardScaler:   # All scalers from scikitlearn
       copy: True
-      with_mean: True
-      with_std: True
+      # with_mean: True
+      # with_std: True
 
+Mode:
+  Training: True
+  Validate: False
+  Detect: True
+
+
+
+# Analysis example
+# Analysis:
+#  Methods:
+#    - Method: !!python/object/apply:edeuser.user_methods.wrapper_improved_pearson
+#        kwds:
+#          name: Test_Training
+#          location: /Users/gabriel/workspaces/Event-Detection-Engine/edeuser/analysis
+#          show: False
+#    - Method: !!python/object/apply:edeuser.user_methods.wrapper_rank2
+#        kwds:
+#          name: Test_rank
+#          location: /Users/gabriel/workspaces/Event-Detection-Engine/edeuser/analysis
+#          algorithm: spearman
+#          show: False
+#    - Method: !!python/object/apply:edeuser.user_methods.wrapper_rank1
+#        kwds:
+#          name: Test_rank1
+#          location: /Users/gabriel/workspaces/Event-Detection-Engine/edeuser/analysis
+#          algorithm: shapiro
+#  Solo: True
 
 # Clustering example
 Training:
@@ -48,14 +74,13 @@ Training:
     verbose: True
     bootstrap: True
 
-
 Detect:
-  Method: IForest
+  Method: isoforest
   Type: clustering
-  Load: cluster_y2_v3
-  Scaler: StandardScaler
-  Analysis: # if plotting of heatmap, summary and feature importance is require, if not set False or use previous example
-    Plot: True
+  Load: clustering_1
+  Scaler: StandardScaler  # Same as for training
+
+
 
 Misc:
   heap: 512m
