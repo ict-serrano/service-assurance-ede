@@ -265,3 +265,4 @@ zict==2.0.0
 zipp==3.4.1
 grafana-client==3.9.1
 backoff
+scikeras

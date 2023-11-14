@@ -2,6 +2,7 @@ Flask==2.0.3
 flask-apispec==0.11.0
 Flask-Compress==1.11
 Flask-RESTful==0.3.9
+Flask-WTF
 redis
 rq
 shap
@@ -27,3 +28,13 @@ tqdm
 xgboost
 yellowbrick
 sklearn-deap
+dask
+addict
+elasticsearch
+backoff
+elasticsearch_watcher
+imbalanced-learn==0.8.0
+tensorflow==2.6.0
+scikeras
+distributed==2021.4.0
+grafana-client==3.9.1
