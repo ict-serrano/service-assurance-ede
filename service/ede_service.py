@@ -36,6 +36,7 @@ import rq
 from rq.job import Job
 from rq.command import send_stop_job_command
 from rq import cancel_job
+import glob
 
 
 
@@ -43,7 +44,7 @@ from rq import cancel_job
 data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../data')
 models_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../models')
 conf_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../conf')
-
+etc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etc')
 #file location
 
 service_log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'logs')
@@ -472,6 +473,16 @@ class RQEngineJobQueueStatus(Resource, MethodResource):
                 'queued': jqueued
             }
         )
+
+        # check for detached EDE processes
+        detached_failed = check_for_detached_process(failed)
+        detached_finished = check_for_detached_process(finished)
+
+        if detached_failed:
+            resp['detached_failed'] = detached_failed
+        if detached_finished:
+            resp['detached_finished'] = detached_finished
+
         resp.status_code = 200
         return resp
 
@@ -504,9 +515,14 @@ class RQEngineJobQueueStatus(Resource, MethodResource):
             send_stop_job_command(r_connection, rjob)
             cancel_job(rjob, connection=r_connection)
             started_registry.remove(rjob, delete_job=True)
+
+        # kill all EDE processes
+        check_for_detached_process(jobs)
+
         resp = jsonify(
             {
-                'message': 'All jobs deleted'
+                'message': 'All jobs deleted',
+                'jobs': jobs
             }
         )
         resp.status_code = 200
@@ -544,6 +560,9 @@ class RQEngineJobStatus(Resource, MethodResource):
             return response
         send_stop_job_command(r_connection, job_id)
         job.delete()
+        # kill detached EDE process
+        check_for_detached_process([job_id])
+
         response = jsonify({'status': 'deleted',
                             'job_id': job_id})
         response.status_code = 200

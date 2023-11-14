@@ -149,3 +149,16 @@ def readConf(file):
     else:
         raise Exception("Config not found!")
     return conf
+
+def check_for_detached_process(list_job_id):
+    etc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etc')
+    detached_proc = []
+    for job_id in list_job_id:
+        for name in glob.glob("{}/ede_{}.pid".format(etc_path, job_id)):
+            with open(name, 'r') as f:
+                pid = f.readline()
+            if not check_pid(int(pid)):
+                os.kill(int(pid), signal.SIGTERM)
+                os.remove(name)
+            detached_proc.append(job_id)
+    return detached_proc
