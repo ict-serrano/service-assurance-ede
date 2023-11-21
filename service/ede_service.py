@@ -25,7 +25,9 @@ import subprocess
 import platform
 from flask import send_from_directory, jsonify
 from werkzeug.utils import secure_filename
+import marshmallow
 from flask_restful import Resource
+from flask_apispec import marshal_with, use_kwargs
 from flask_apispec.views import MethodResource
 from flask_apispec.annotations import doc
 from app import *
@@ -63,8 +65,16 @@ r_name = os.getenv('RQ_NAME', 'edeservice')
 r_connection = Redis(host=redis_end, port=redis_port)
 queue = rq.Queue(r_name, connection=r_connection)
 
+# Schemas
+class EDEStatusSchema(marshmallow.Schema):
+    status = marshmallow.fields.String(default='ok')
+    python_version = marshmallow.fields.String()
+    platform = marshmallow.fields.String()
+    sklearn_version = marshmallow.fields.String()
+    shap_version = marshmallow.fields.String()
 
 @doc(description='EDE Status descriptor', tags=['status'])
+@marshal_with(EDEStatusSchema, code=200)
 class EDEStatus(Resource, MethodResource):
     def get(self):
         import sklearn, shap
