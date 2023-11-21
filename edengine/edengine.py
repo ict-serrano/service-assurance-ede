@@ -58,6 +58,13 @@ class EDEngine:
         self.grafana_url = settingsDict['grafanaurl']
         self.grafana_credentials = settingsDict['grafanatoken']
         self.grafana_tag = settingsDict['grafanatag']
+        self.influxdb_check = False # Serrano, used for checking if influxdb is online, once on startup
+        self.influxdb_endpoint = settingsDict['influxdbendpoint']
+        self.influxdb_port = settingsDict['influxdbport']
+        self.influxdb_token = settingsDict['influxdbtoken']
+        self.influxdb_bucket = settingsDict['influxdbbucket']
+        self.influxdb_org = settingsDict['influxdborg']
+        self.influxdb_query = settingsDict['influxdbquery']
         self.EDEPort = settingsDict['EDEPort']
         self.index = settingsDict['index']
         self.tfrom = settingsDict['from']
@@ -231,6 +238,11 @@ class EDEngine:
                 if deployments.status_code != 200:
                     logger.warning('[{}] : [WARN] Serrano PMDS Backend connection returned non-standard status code {} for namespace {}'.format(
                         datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), deployments.status_code, pmds_namspace))
+        elif self.influxdb_endpoint is not None:
+            if not self.influxdb_check:
+                logger.info('[{}] : [INFO] Checking connection to InfluxDB Backend ...'.format(datetime.fromtimestamp(time.time()).strftime(log_format)))
+                inx_health = self.edeConnector.inx_query(url=f'{self.influxdb_endpoint}:{self.influxdb_port}',
+                                                         token=self.influxdb_token, org=self.influxdb_org)
         elif self.local is not None:
             logger.info('[{}] : [INFO] Set local data source: {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), self.local))
@@ -289,6 +301,14 @@ class EDEngine:
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), query_param))
             r_pmds = self.edeConnector.sr_pmds_query(query_param)
             df_qpr = self.dformat.sr_pmds_list_to_df(r_pmds, checkpoint=checkpoint, detect=detect)
+        elif self.influxdb_endpoint is not None:
+            checkpoint = str2Bool(self.checkpoint)
+            logger.info('[{}] : [INFO] Fetching data from InfluxDB backend '.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+            r_inx = self.edeConnector.inx_query(url=f'{self.influxdb_endpoint}:{self.influxdb_port}',
+                                                 token=self.influxdb_token, org=self.influxdb_org,
+                                                 query=self.influxdb_query)
+            df_qpr = self.dformat.inx_df(r_inx, checkpoint=checkpoint, detect=detect)
         else:
             queryd = self.query
             checkpoint = str2Bool(self.checkpoint)

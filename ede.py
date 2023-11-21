@@ -54,6 +54,12 @@ def main(argv,
     settings.pmdsgroups = ['general']  # Serrano
     settings.pmdsclusterid = None  # Serrano
     settings.pmdsnamespace = None # Serrano
+    settings.influxdbendpoint = None
+    settings.influxdbport = 8086
+    settings.influxdbtoken = None
+    settings.influxdborg = 'serrano'
+    settings.influxdbbucket = 'serrano'
+    settings.influxdbquery = None
     settings.Dask.SchedulerEndpoint = None  # "local"
     settings.Dask.SchedulerPort = 8787
     settings.Dask.EnforceCheck = False
@@ -269,6 +275,52 @@ def main(argv,
         except:
             logger.warning('[%s] : [WARN] PMDS not set in conf',
                                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+    elif settings['influxdbendpoint'] is None and settings['esendpoint'] is None and settings['prendpoint'] is None:
+        try:
+            logger.info('[{}] : [INFO] InfluxDB set to : {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                readCnf['Connector']['InfluxDB']['endpoint']))
+            settings['influxdbendpoint'] = readCnf['Connector']['InfluxDB']['endpoint']
+        except Exception:
+            logger.error('[%s] : [ERROR] InfluxDB endpoint not set in conf exiting ...',
+                            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+            sys.exit(2)
+        try:
+            logger.info('[{}] : [INFO] InfluxDB Port set to : {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'),
+                readCnf['Connector']['InfluxDB']['port']))
+            settings['influxdbport'] = readCnf['Connector']['InfluxDB']['port']
+        except Exception:
+            logger.warning('[%s] : [WARN] InfluxDB Port not set in conf setting to default value %s',
+                           datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdbport'])
+        try:
+            settings['influxdbtoken'] = readCnf['Connector']['InfluxDB']['token']
+            logger.info('[{}] : [INFO] InfluxDB Token found ..'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+        except Exception:
+            logger.error('[%s] : [ERROR] InfluxDB token not set in conf exiting ...',
+                            datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+            sys.exit(2)
+        try:
+            settings['influxdborg'] = readCnf['Connector']['InfluxDB']['org']
+            logger.info('[{}] : [INFO] InfluxDB Org set to {}}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdborg']))
+        except Exception:
+            logger.warning('[%s] : [WARN] InfluxDB Org not set in conf setting to default value %s',
+                           datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdborg'])
+        try:
+            settings['influxdbbucket'] = readCnf['Connector']['InfluxDB']['bucket']
+            logger.info('[{}] : [INFO] InfluxDB Bucket set to {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdbbucket']))
+        except Exception:
+            logger.warning('[%s] : [WARN] InfluxDB Bucket not set in conf setting to default value %s',
+                           datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdbbucket'])
+        try:
+            settings['influxdbquery'] = readCnf['Connector']['InfluxDB']['query']
+            logger.info('[{}] : [INFO] InfluxDB Flux Query set ...'.format(datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdbquery']))
+        except Exception:
+            logger.error('[%s] : [ERROR] InfluxDB Flux Query not set in conf exiting ...', datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'))
+            sys.exit(2)
     elif settings['esendpoint'] is None:
         try:
             logger.info('[{}] : [INFO] Monitoring ES Backend endpoint in config {}'.format(

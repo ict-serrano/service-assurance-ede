@@ -32,6 +32,14 @@ from joblib import Parallel, delayed
 import backoff
 from tqdm import tqdm
 
+# Influx Connection
+import influxdb_client
+from influxdb_client import InfluxDBClient, WriteOptions, WritePrecision, Point
+import warnings
+from influxdb_client.client.warnings import MissingPivotFunction
+warnings.simplefilter("ignore", MissingPivotFunction)
+
+
 class Connector:
     def __init__(self,
                  prEndpoint=None,
@@ -46,7 +54,7 @@ class Connector:
                  prKafkaTopic='edetopic',
                  srTelemetryPMDS=None,
                  central_telemetry_handler='http://central-telemetry.services.cloud.ict-serrano.eu/',
-                 enhanced_telemetry_agent='http://85.120.206.26:30090'
+                 enhanced_telemetry_agent='http://85.120.206.26:30090',
                  ):
         self.dataDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
         if esEndpoint is None:
@@ -216,6 +224,43 @@ class Connector:
                 datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             sys.exit(2)
         return resp.json()
+
+    @backoff.on_exception(backoff.expo, requests.exceptions.RequestException,
+                          max_tries=60)
+    def inx_query(self,
+                  url,
+                  token,
+                  org,
+                  query=None):
+        '''
+        Load data from influxdb
+        Returns dataframe
+        -------
+        '''
+
+        try:
+            client = InfluxDBClient(url,
+                                    token,
+                                    org)
+            if query is None:
+                health = client.health()
+                if health['status'] == 'pass':
+                    logger.info('[{}] : [INFO] InfluxDB healthcheck pass'.format(
+                        datetime.fromtimestamp(time.time()).strftime(log_format)))
+                else:
+                    logger.error('[{}] : [ERROR] InfluxDB healthcheck failed with {}'.format(
+                        datetime.fromtimestamp(time.time()).strftime(log_format)), health.message)
+                    return 0
+            df = client.query_api().query_data_frame(query=query)
+            if df.empty:
+                logger.warning(
+                    '[{}] : [WARN] InfluxDB query resulted in empty dataframe ...'.format(
+                        datetime.fromtimestamp(time.time()).strftime(log_format)))
+                return df
+        except Exception as inst:
+            logger.error('[{}] : [ERROR] Exception has ocurred while connecting to InfluxDB with type {} at arguments {}'.
+                         format(datetime.fromtimestamp(time.time()).strftime(log_format)), type(inst), inst.args)
+            return pd.DataFrame()
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException,
                           max_tries=60)

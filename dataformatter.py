@@ -835,6 +835,25 @@ class DataFormatter:
         # df.set_index('time', inplace=True)
         return df
 
+    def inx_df(self, df, index='_time', checkpoint=False, detect=False):
+        if df.empty:
+            logger.warning('[{}] : [WARN] Cannot set index for empty dataframe'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+            return df
+        df[index] = pd.to_datetime(df[index])
+        df.set_index(index, inplace=True)
+        if checkpoint:
+            if detect:
+                pr = "inx_data_detect.csv"
+            else:
+                pr = "inx_data.csv"
+            inx_csv_loc = os.path.join(self.dataDir, pr)
+            df.to_csv(inx_csv_loc, index=True)
+            logger.info('[{}] : [INFO] InfluxDB query dataframe persisted to {}'.format(
+                datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), self.dataDir))
+        return df
+
+
     def df2dict(self, df):
         kdf = df.set_index('key')
         return kdf.to_dict()
