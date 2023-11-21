@@ -161,6 +161,10 @@ class SciCluster:
         except Exception as inst:
             logger.error('[{}] : [ERROR] Failed to fit IsolationForest with {} and {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
+            if data.isnull().values.any():
+                logger.error(
+                    '[{}] : [ERROR] NaN  values detected in query {} times. Please set filters or check data source!'.format(
+                        datetime.fromtimestamp(time.time()).strftime(log_format), data.isnull().sum().sum()))
             sys.exit(1)
 
         predict = clf.predict(data)
@@ -175,7 +179,8 @@ class SciCluster:
 
     def isolationForest(self, settings,
                         mname,
-                        data):
+                        data,
+                        shap_analysis=False,):
         '''
         :param settings: -> settings dictionary
         :param mname: -> name of serialized clusterer
@@ -214,11 +219,16 @@ class SciCluster:
         except Exception as inst:
             logger.error('[%s] : [ERROR] Cannot fit isolation forest model with %s and %s',
                          datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args)
+            if data.isnull().values.any():
+                logger.error(
+                    '[{}] : [ERROR] NaN  values detected in query {} times. Please set filters or check data source!'.format(
+                        datetime.fromtimestamp(time.time()).strftime(log_format), data.isnull().sum().sum()))
             sys.exit(1)
         predict = clf.predict(data)
         print("Anomaly Array:")
         print(predict)
         self.__serializemodel(clf, 'isoforest', mname)
+        # self.__shap_analysis(model=clf, data=data, save=mname)
         return clf
 
     def detect(self, method,
@@ -317,6 +327,9 @@ class SciCluster:
                 except Exception as inst:
                     logger.error('[{}] : [ERROR] Failed to load predictive model with {} and {}'.format(
                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
+                    if data.isnull().values.any():
+                        logger.error('[{}] : [ERROR] NaN  values detected in query {} times. Please set filters or check data source!'.format(
+                            datetime.fromtimestamp(time.time()).strftime(log_format), data.isnull().sum().sum()))
                     dpredict = 0
             else:
                 dpredict = 0
@@ -363,7 +376,8 @@ class SciCluster:
     def __shap_analysis(self,
                         model,
                         data,
-                        plot=False):
+                        plot=False,
+                        save=False):
         """
         Execute shapely value calculation on incoming data and model prediction.
         Several plots are also calculated if set: heatmap, summary and feature importance.
@@ -373,8 +387,20 @@ class SciCluster:
         :param plot: If set to True each query interval will also generate the above mentioned plots.
         :return: feature importance dictionary form (from pandas dataframe), shapely values
         """
-        explainer = shap.Explainer(model, data)
-        shap_values = explainer(data)
+        logger.info('[{}] : [INFO] Calculating shapely values ... '.format(
+            datetime.fromtimestamp(time.time()).strftime(log_format)))
+        if save:
+            if os.path.isfile(os.path.join(self.modelDir, save)):
+                logger.info('[{}] : [INFO] Loading shapely values for {} ... '.format(
+                    datetime.fromtimestamp(time.time()).strftime(log_format), save))
+                shap_values = joblib.load(os.path.join(self.modelDir, save))
+                explainer = joblib.load(os.path.join(self.modelDir, model))
+            else:
+                explainer = shap.Explainer(model, data)
+                shap_values = explainer(data)
+        else:
+            explainer = shap.Explainer(model, data)
+            shap_values = explainer(data)
         vals = np.abs(shap_values.values).mean(0)
         feature_importance = pd.DataFrame(list(zip(shap_values.feature_names, vals)),
                                           columns=['feature_name', 'feature_importance_vals'])
@@ -383,6 +409,13 @@ class SciCluster:
             self.__shap_heatmap(shap_values=shap_values)
             self.__shap_summary(shap_values=shap_values, data=data)
             self.__shap_feature_importance(shap_values=shap_values)
+        if save:
+            if type(save) != str:
+                save = 'shap_values.pkl'
+            else:
+                save = save + '.pkl'
+            joblib.dump(shap_values, os.path.join(self.modelDir, save))
+            joblib.dump(explainer, os.path.join(self.modelDir, model))
         return feature_importance.to_dict(), shap_values
 
     def __shap_force_layout(self,
@@ -477,6 +510,10 @@ class SciCluster:
             logger.error('[{}] : [ERROR] Failed to fit {} with {} and {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), type(cluster_method),
                 type(inst), inst.args))
+            if data.isnull().values.any():
+                logger.error(
+                    '[{}] : [ERROR] NaN  values detected in query {} times. Please set filters or check data source!'.format(
+                        datetime.fromtimestamp(time.time()).strftime(log_format), data.isnull().sum().sum()))
             sys.exit(1)
         predictions = clf.predict(data)
         if list(np.unique(predictions)) == [0, 1]:
@@ -490,6 +527,8 @@ class SciCluster:
         logger.debug('[{}] : [DEBUG] Predicted Anomaly Array {}'.format(
             datetime.fromtimestamp(time.time()).strftime(log_format), predictions))
         fname = str(clf).split('(')[0]
+        if self.pred_analysis and predictions.shape[0]:
+            plot = self.pred_analysis['Plot']
         self.__serializemodel(clf, fname, mname)
         self.__plot_feature_sep(data, predictions, method=fname, mname=mname, anomaly_label=anomaly_marker,
                                 normal_label=normal_marker)

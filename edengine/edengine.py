@@ -1049,7 +1049,7 @@ class EDEngine:
                                    'max_features': 1.0, 'n_jobs': -1, 'random_state': None, 'verbose': 0}
                         logger.info('[%s] : [INFO] Using settings for isoForest -> %s ',
                                     datetime.fromtimestamp(time.time()).strftime(log_format), str(opt))
-                        isofrst = sede.SciCluster(self.modelsDir)
+                        isofrst = sede.SciCluster(self.modelsDir, pred_analysis=self.pred_analysis)
                         isofrstmodel = isofrst.isolationForest(settings=opt, mname=self.export, data=udata)
                     # Once training finished set training to false
                     self.train = False

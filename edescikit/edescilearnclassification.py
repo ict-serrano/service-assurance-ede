@@ -251,6 +251,10 @@ class SciClassification:
                 except Exception as inst:
                     logger.error('[{}] : [ERROR] Failed to load predictive model with {} and {}'.format(
                         datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
+                    if data.isnull().values.any():
+                        logger.error(
+                            '[{}] : [ERROR] NaN  values detected in query {} times. Please set filters or check data source!'.format(
+                                datetime.fromtimestamp(time.time()).strftime(log_format), data.isnull().sum().sum()))
                     dpredict = 0
             else:
                 dpredict = 0
