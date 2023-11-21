@@ -66,7 +66,7 @@ def clean_up_pid(file):
 
 
 def kill_pid(pid):
-    os.kill(pid, signal.SIGTERM)
+    os.kill(pid, signal.SIGINT)
 
 
 def get_pid_from_file(file, check=False):
