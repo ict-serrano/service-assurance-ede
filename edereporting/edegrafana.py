@@ -3463,7 +3463,7 @@ class EDEGrafanaDash:
               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), self.dash_id))
             l_dash_id = self.dash_id
         elif dash_id is not None:
-            logger.info('[{}] : [INFO] Dash id set to {}'.format(
+            logger.info('[{}] : [DEBUG] Dash id set to {}'.format(
               datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), dash_id))
             l_dash_id = dash_id
         else:
@@ -3478,7 +3478,7 @@ class EDEGrafanaDash:
                                                                  tags=anomaly_tags,
                                                                  text=message)
             logger.info(
-              '[{}] : [INFO] Detected annotations {}'.format(
+              '[{}] : [DEBUG] Detected annotations {}'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), len(annotation)))
         except Exception as inst:
             logger.error('[{}] : [ERROR] "Failed to push annomalies with {} and {}'.format(

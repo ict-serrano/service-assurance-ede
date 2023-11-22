@@ -263,9 +263,15 @@ class Connector:
             return pd.DataFrame()
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException,
-                          max_tries=60)
+                          max_tries=60,
+                          # jitter=backoff.full_jitter,
+                          # max_time=500
+                          )
     def __unreliable_connection_backoff(self, url, params=None):
-        res = requests.get(url, params=params)
+        # timeout 30 for connect and 300 for read
+        res = requests.get(url, params=params,
+                           # timeout=(30, 300)
+                           )
         return res
     def __sr_pmds_service_query_nodes(self, cluster_uuid, **kwargs):
         valid_query_params = ["group",
@@ -298,7 +304,7 @@ class Connector:
                     datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), res.status_code, query_params['group']))
             # print(res.text)
             # sys.exit(2)
-            return None
+            return {}
         try:
             res_json = res.json()
         except Exception as inst:
