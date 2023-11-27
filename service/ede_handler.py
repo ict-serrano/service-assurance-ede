@@ -15,7 +15,7 @@ def ede_log_handler(ede_log,
         if not line:
             time.sleep(0.1)
             continue
-        job.meta['progress'] = line
+        job.meta['progress'] = line.strip()
         job.save_meta()
         if check_pid(pid) == 0:
             break

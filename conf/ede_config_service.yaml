@@ -2,7 +2,7 @@ Connector:
   PMDS:
     Endpoint: http://pmds.services.cloud.ict-serrano.eu
     Cluster_id: "7628b895-3a91-4f0c-b0b7-033eab309891"
-    Start: -6h
+    Start: -5m
     End: ''
     Groups:
     - general
@@ -26,6 +26,9 @@ Connector:
   QSize: 0
   Index: time
   QDelay: "10s" # Polling period for metrics fetching
+
+Filter:
+  Fillna: True # fill none values with 0
 
 Augmentation:
   Scaler: # if not used set to false
@@ -66,7 +69,7 @@ Mode:
 Training:
   Type: clustering
   Method: isoforest
-  Export: clustering_1
+  Export: sr_isolationforest_1
   MethodSettings:
     n_estimators: 10
     max_samples: 10
@@ -77,7 +80,7 @@ Training:
 Detect:
   Method: isoforest
   Type: clustering
-  Load: clustering_1
+  Load: sr_isolationforest_1
   Scaler: StandardScaler  # Same as for training
 
 
