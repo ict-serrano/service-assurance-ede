@@ -227,7 +227,7 @@ class EDEngine:
                 if self.sr_pmds_end is None:
                     pmds_namspace = 'integration'
                     logger.info('[{}] : [INFO] Serrano PMDS Backend not defined, using default: {}'.format(
-                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')), pmds_namspace)
+                        datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), pmds_namspace))
                 else:
                     pmds_namspace = self.sr_pmds_namespace
                 deployments = self.edeConnector.sr_pmds_service_query_deployments(cluster_uuid=self.sr_cluster_id,

@@ -88,8 +88,8 @@ class EDEPDF(FPDF):
                 self.add_page()
                 self.page_body(image)
             except Exception as inst:
-                logger.error('[{}] : [ERROR] Exception while adding image! With {}, {}} ...'.format(datetime.
-                                                                                                    fromtimestamp(time.time().strftime(log_format), type(inst), inst.args)))
+                logger.error('[{}] : [ERROR] Exception while adding image! With {}, {} ...'.format(
+                    datetime.fromtimestamp(time.time().strftime(log_format), type(inst), inst.args)))
 
     def print_analysis_feature_plot(self, images, classif=False):
         self.add_page()

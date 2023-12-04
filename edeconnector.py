@@ -249,7 +249,7 @@ class Connector:
                         datetime.fromtimestamp(time.time()).strftime(log_format)))
                 else:
                     logger.error('[{}] : [ERROR] InfluxDB healthcheck failed with {}'.format(
-                        datetime.fromtimestamp(time.time()).strftime(log_format)), health.message)
+                        datetime.fromtimestamp(time.time()).strftime(log_format), health.message))
                     return 0
             df = client.query_api().query_data_frame(query=query)
             if df.empty:
@@ -259,7 +259,7 @@ class Connector:
                 return df
         except Exception as inst:
             logger.error('[{}] : [ERROR] Exception has ocurred while connecting to InfluxDB with type {} at arguments {}'.
-                         format(datetime.fromtimestamp(time.time()).strftime(log_format)), type(inst), inst.args)
+                         format(datetime.fromtimestamp(time.time()).strftime(log_format), type(inst), inst.args))
             return pd.DataFrame()
 
     @backoff.on_exception(backoff.expo, requests.exceptions.RequestException,

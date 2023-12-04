@@ -303,7 +303,7 @@ def main(argv,
             sys.exit(2)
         try:
             settings['influxdborg'] = readCnf['Connector']['InfluxDB']['org']
-            logger.info('[{}] : [INFO] InfluxDB Org set to {}}'.format(
+            logger.info('[{}] : [INFO] InfluxDB Org set to {}'.format(
                 datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), settings['influxdborg']))
         except Exception:
             logger.warning('[%s] : [WARN] InfluxDB Org not set in conf setting to default value %s',
