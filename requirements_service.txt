@@ -38,3 +38,4 @@ tensorflow==2.6.0
 scikeras
 distributed==2021.4.0
 grafana-client==3.9.1
+#pip install "dask[distributed]" --upgrade
