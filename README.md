@@ -31,7 +31,7 @@ and the substantial variety of solutions which could constitute a monitoring ser
 able to contend with fetching data from a plethora of systems. _Connectors_ is implemented such that it  serves as adapters for each solution. 
 Furthermore, this component also is be able to load data directly from static file (_HDF5_, _CSV_ , _JSON_, or even _raw format_). 
 
-![EDE Architecture](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/architecture/ede_arch_v3-Page-2.png)
+![EDE Architecture](https://github.com/ict-serrano/service-assurance-ede/blob/master/architecture/ede_arch_v3.png)
 
 This aids in fine tuning of event and anomaly detection methods. We can also see that _data ingestion can be done directly_ 
 via query from the monitoring solution or _streamed directly from the queuing service_ (after ETL if necessary). 
@@ -720,15 +720,15 @@ Misc:
 
 
 
-* [EDE Analysis](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/1_ede_analysis_y2.yaml)
-* [EDE Clustering](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/2_ede_clustering_y2.yaml)
-* [EDE Clustering user defined](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/3_ede_clustering_user_y2.yaml)
-* [EDE Clustering Prediction](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/4_ede_clustering_predict_y2.yaml)
-* [EDE Classification](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/5_ede_classification_y2.yaml)
-* [EDE Classification Predicton](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/6_ede_classification_predict_y2.yaml)
-* [EDE HPO](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/7_ede_hpo_y2.yaml)
-* [EDE TPOT](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/8_ede_tpot.yaml)
-* [EDE TPOT Predict](https://gitlab.dev.info.uvt.ro/serrano/EDE-Dipet/-/blob/master/9_ede_tpot_predict.yaml)
+* [EDE Analysis](https://github.com/ict-serrano/service-assurance-ede/blob/master/1_ede_analysis_y2.yaml)
+* [EDE Clustering](https://github.com/ict-serrano/service-assurance-ede/blob/master/2_ede_clustering_y2.yaml)
+* [EDE Clustering user defined](https://github.com/ict-serrano/service-assurance-ede/blob/master/3_ede_clustering_user_y2.yaml)
+* [EDE Clustering Prediction](https://github.com/ict-serrano/service-assurance-ede/blob/master/4_ede_clustering_predict_y2.yaml)
+* [EDE Classification](https://github.com/ict-serrano/service-assurance-ede/blob/master/5_ede_classification_y2.yaml)
+* [EDE Classification Predicton](https://github.com/ict-serrano/service-assurance-ede/blob/master/6_ede_classification_predict_y2.yaml)
+* [EDE HPO](https://github.com/ict-serrano/service-assurance-ede/blob/master/7_ede_hpo_y2.yaml)
+* [EDE TPOT](https://github.com/ict-serrano/service-assurance-ede/blob/master/8_ede_tpot.yaml)
+* [EDE TPOT Predict](https://github.com/ict-serrano/service-assurance-ede/blob/master/9_ede_tpot_predict.yaml)
 
 ## EDE Service
 
@@ -958,8 +958,8 @@ This resource enables the halting of workers. This resource need to be accessed 
 
 This is a work in progress and is not yet ready for production use. Additional features are being added and the API is subject to change.
 These features include:
-- [ ] Integration with Serrano Telemetry System
+- [x] Integration with Serrano Telemetry System
 - [ ] Support for training
-- [ ] Support for more data sources
-- [ ] Support input data validation and examples in swagger
-- [ ] Support for additional anomaly reporting (currently only via kafka topic)
+- [x] Support for more data sources
+- [x] Support input data validation and examples in swagger
+- [x] Support for additional anomaly reporting (currently only via kafka topic)
