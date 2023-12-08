@@ -478,25 +478,20 @@ class RQEngineJobQueueStatus(Resource, MethodResource):
                 started.append(rjob)
             elif job.is_queued:
                 jqueued.append(rjob)
-
-        resp = jsonify(
-            {
-                'started': started,
-                'finished': finished,
-                'failed': failed,
-                'queued': jqueued
-            }
-        )
-
         # check for detached EDE processes
         detached_failed = check_for_detached_process(failed)
         detached_finished = check_for_detached_process(finished)
-
+        resp_dict = {
+            'started': started,
+            'finished': finished,
+            'failed': failed,
+            'queued': jqueued
+        }
         if detached_failed:
-            resp['detached_failed'] = detached_failed
+            resp_dict['detached_failed'] = detached_failed
         if detached_finished:
-            resp['detached_finished'] = detached_finished
-
+            resp_dict['detached_finished'] = detached_finished
+        resp = jsonify(resp_dict)
         resp.status_code = 200
         return resp
 
