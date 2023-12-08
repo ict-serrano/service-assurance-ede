@@ -31,7 +31,7 @@ def ede_handler(config_path):
     if os.getcwd().split('/')[-1] != 'service':  # TODO fix this
         os.chdir("..")
     ede_exec = os.path.join(os.path.abspath(os.curdir), 'ede.py')
-    print(ede_exec)
+    print(f"+++++++++> {ede_exec}")
     exec = subprocess.Popen(['python', ede_exec, '-f', config_path])
     ede_pid_handler(job.get_id(), exec.pid)
     ede_log = open(os.path.join(os.path.abspath(os.curdir), 'ede.log'), 'r')
