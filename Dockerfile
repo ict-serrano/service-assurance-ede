@@ -18,5 +18,5 @@ COPY requirements_service.txt /edeservice/requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . /edeservice
-
+RUN touch /edeservice/ede.log
 CMD ["python", "service/run.py"]
