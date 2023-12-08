@@ -33,7 +33,7 @@ addict
 elasticsearch
 backoff
 elasticsearch_watcher
-imbalanced-learn==0.8.0
+imbalanced-learn
 tensorflow==2.10.0
 scikeras
 distributed
