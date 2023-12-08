@@ -28,7 +28,8 @@ def ede_handler(config_path):
     job = get_current_job()
     job.meta['progress'] = "Started inference"
     job.save_meta()
-    os.chdir("..")
+    if os.getcwd().split('/')[-1] != 'service':  # TODO fix this
+        os.chdir("..")
     ede_exec = os.path.join(os.path.abspath(os.curdir), 'ede.py')
     exec = subprocess.Popen(['python', ede_exec, '-f', config_path])
     ede_pid_handler(job.get_id(), exec.pid)
