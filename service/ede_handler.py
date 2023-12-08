@@ -28,7 +28,6 @@ def ede_handler(config_path):
     job = get_current_job()
     job.meta['progress'] = "Started inference"
     job.save_meta()
-    print(f"+++++++++> {os.getcwd()}")
     if os.getcwd().split('/')[-1] == 'service':  # TODO fix this
         os.chdir("..")
     ede_exec = os.path.join(os.path.abspath(os.curdir), 'ede.py')
