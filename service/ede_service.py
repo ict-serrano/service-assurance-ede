@@ -347,7 +347,7 @@ class ExecuteInference(Resource, MethodResource):
         from ede_handler import ede_handler
         try:
             job = queue.enqueue(ede_handler, kwargs={'config_path': os.path.join(conf_dir, 'ede_config_service.yaml')},
-                                timeout=os.getenv('RQ_TIMEOUT', 600))
+                                timeout=os.getenv('RQ_TIMEOUT', 3600))
             resp = jsonify({
                 'job_id': job.get_id()
             })

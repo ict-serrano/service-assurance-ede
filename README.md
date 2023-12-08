@@ -954,6 +954,18 @@ If the maximum number of workers has been reached the following response will be
 
 This resource enables the halting of workers. This resource need to be accessed each time a worker needs to be stopped.
 
+## Environmental Variables
+We use several environment variables to configure the service. The following variables are required:
+* `EDE_HOST` - the host of the ede-service
+* `EDE_PORT` - the port of the ede-service
+* `EDE_DEBUG` - the debug level of the ede-service
+* `REDIS_END` - the endpoint for redis queue
+* `REDIS_PORT` - the port for redis queue
+* `WORKER_THRESHOLD` - threshold modifier for number of supported workers, be default it is twice the number of CPU cores
+* `RQ_TIMEOUT` - timeout for rq workers, default 3600 seconds
+All environment variables have default values in accordance with the libraries used.
+
+
 # NOTE
 
 This is a work in progress and is not yet ready for production use. Additional features are being added and the API is subject to change.

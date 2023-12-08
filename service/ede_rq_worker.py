@@ -11,6 +11,8 @@ r_connection = Redis(host=redis_end, port=redis_port)
 if __name__ == '__main__':
     config = load_yaml('worker.yaml')
     with Connection(connection=r_connection):
+        # queue = Queue(default_timeout=os.getenv('RQ_TIMEOUT', 3600))
+        Queue.default_timeout = os.getenv('RQ_TIMEOUT', 3600)
         worker = Worker(map(Queue, config['listen']))
         pid_f = 'worker_{}.pid'.format(worker.name)
         print('Saving pid {} to file {}'.format(worker.pid, pid_f))
