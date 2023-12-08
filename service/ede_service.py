@@ -386,7 +386,11 @@ class RQWorkers(Resource, MethodResource):
             log.warning('Maximum number of aug workers reached: {}'.format(logic_cpu))
             resp.status_code = 200
             return resp
-        p = subprocess.Popen(['python', 'ede_rq_worker.py'])
+        if os.getcwd().split('/')[-1] != 'service': # TODO fix this
+            p = subprocess.Popen(['python', 'service/ede_rq_worker.py'])
+        else:
+            p = subprocess.Popen(['python', 'ede_rq_worker.py'])
+        print(os.getcwd())
         sb_pid = p.pid
         log.info("Starting EDE RQ worker {}".format(len(list_workers)))
         if check_pid(sb_pid):
