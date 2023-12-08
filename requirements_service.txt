@@ -33,7 +33,7 @@ elasticsearch
 backoff
 elasticsearch_watcher
 imbalanced-learn==0.8.0
-tensorflow==2.6.0
+tensorflow==2.10.0
 scikeras
 distributed
 dask
