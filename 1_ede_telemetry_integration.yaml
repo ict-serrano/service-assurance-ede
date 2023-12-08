@@ -1,0 +1,98 @@
+Connector:
+  PMDS:
+    #Endpoint: http://85.120.206.26:30030
+    Endpoint: http://pmds.services.cloud.ict-serrano.eu
+    Cluster_id: "7628b895-3a91-4f0c-b0b7-033eab309891"
+    Start: -2h
+    End: ''
+    Groups:
+    - general
+    - cpu
+    - memory
+    - network
+    - storage
+    Namespace: uvt-aspataru
+  Dask:
+    SchedulerEndpoint: local # if not local add DASK schedueler endpoint
+    Scale: 3 # Number of workers if local otherwise ignored
+    SchedulerPort: 8787 # This is the default point
+    EnforceCheck: False # Irrelevant for local
+  KafkaEndpoint: 85.120.206.118
+  KafkaPort: 9092
+  KafkaTopic: edetopic
+  GrafanaUrl: http://85.120.206.26:32000
+  GrafanaToken: eyJrIjoiMzY4SUM4bjZmMGNpeHBWS3hONWpXeTdyblJiaFhVRVoiLCJuIjoiZWRlX2ludGVncmF0aW9uIiwiaWQiOjF9
+  GrafanaTag: ede_test
+  MetricsInterval: "1m" # Metrics datapoint interval definition
+  QSize: 0
+  Index: time
+  QDelay: "10s" # Polling period for metrics fetching
+
+Filter:
+  Fillna: True # fill none values with 0
+
+Augmentation:
+  Scaler: # if not used set to false
+    StandardScaler:   # All scalers from scikitlearn
+      copy: True
+      # with_mean: True
+      # with_std: True
+
+Mode:
+  Training: True
+  Validate: False
+  Detect: True
+
+
+
+# Analysis example
+# Analysis:
+#  Methods:
+#    - Method: !!python/object/apply:edeuser.user_methods.wrapper_improved_pearson
+#        kwds:
+#          name: Test_Training
+#          location: /Users/gabriel/workspaces/Event-Detection-Engine/edeuser/analysis
+#          show: False
+#    - Method: !!python/object/apply:edeuser.user_methods.wrapper_rank2
+#        kwds:
+#          name: Test_rank
+#          location: /Users/gabriel/workspaces/Event-Detection-Engine/edeuser/analysis
+#          algorithm: spearman
+#          show: False
+#    - Method: !!python/object/apply:edeuser.user_methods.wrapper_rank1
+#        kwds:
+#          name: Test_rank1
+#          location: /Users/gabriel/workspaces/Event-Detection-Engine/edeuser/analysis
+#          algorithm: shapiro
+#  Solo: True
+
+# Clustering example
+Training:
+  Type: clustering
+  Method: isoforest
+  Export: sr_isolationforest_1
+  MethodSettings:
+    n_estimators: 100
+    max_samples: 10
+    contamination: 0.07
+    verbose: True
+    bootstrap: True
+
+Detect:
+  Method: isoforest
+  Type: clustering
+  Load: sr_isolationforest_1
+  Scaler: StandardScaler  # Same as for training
+  #Analysis: True
+  Analysis:
+    Plot: True
+
+
+
+Misc:
+  heap: 512m
+  checkpoint: True
+  delay: 10s
+  interval: 30m
+  resetindex: False
+  point: False
