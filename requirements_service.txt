@@ -28,7 +28,6 @@ tqdm
 xgboost
 yellowbrick
 sklearn-deap
-dask
 addict
 elasticsearch
 backoff
@@ -36,6 +35,7 @@ elasticsearch_watcher
 imbalanced-learn==0.8.0
 tensorflow==2.6.0
 scikeras
-distributed==2021.4.0
+distributed
+dask
 grafana-client==3.9.1
 #pip install "dask[distributed]" --upgrade
