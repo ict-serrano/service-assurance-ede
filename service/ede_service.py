@@ -390,6 +390,7 @@ class RQWorkers(Resource, MethodResource):
             p = subprocess.Popen(['python', 'service/ede_rq_worker.py'])
         else:
             p = subprocess.Popen(['python', 'ede_rq_worker.py'])
+        # p = subprocess.Popen(['python', 'ede_rq_worker.py'])
         sb_pid = p.pid
         log.info("Starting EDE RQ worker {}".format(len(list_workers)))
         if check_pid(sb_pid):
