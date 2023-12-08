@@ -38,7 +38,7 @@ Augmentation:
       # with_std: True
 
 Mode:
-  Training: True
+  Training: False
   Validate: False
   Detect: True
 
@@ -82,13 +82,14 @@ Detect:
   Type: clustering
   Load: sr_isolationforest_1
   Scaler: StandardScaler  # Same as for training
+  Analysis: True
 
 
 
 Misc:
   heap: 512m
   checkpoint: True
-  delay: 10s
+  delay: 5m
   interval: 30m
   resetindex: False
   point: False
