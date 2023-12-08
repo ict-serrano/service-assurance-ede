@@ -63,7 +63,7 @@ redis_end = os.getenv('REDIS_END', 'redis')
 redis_port = os.getenv('REDIS_PORT', 6379)
 r_name = os.getenv('RQ_NAME', 'edeservice')
 r_connection = Redis(host=redis_end, port=redis_port)
-queue = rq.Queue(r_name, connection=r_connection)
+queue = rq.Queue(r_name, connection=r_connection, default_timeout=os.getenv('RQ_TIMEOUT', 3600))
 
 # Schemas
 class EDEStatusSchema(marshmallow.Schema):
