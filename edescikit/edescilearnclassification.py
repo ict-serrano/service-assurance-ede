@@ -35,7 +35,7 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 from sklearn.cluster import DBSCAN
-from sklearn.metrics import make_scorer, SCORERS, get_scorer, classification_report, confusion_matrix, accuracy_score
+from sklearn.metrics import make_scorer, get_scorer, classification_report, confusion_matrix, accuracy_score
 import tensorflow as tf
 from scikeras.wrappers import KerasClassifier
 from imblearn.metrics import classification_report_imbalanced
