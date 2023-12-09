@@ -365,6 +365,7 @@ class ExecuteInference(Resource, MethodResource):
 class RQWorkers(Resource, MethodResource):
     def get(self):
         list_workers = get_list_workers()
+        list_ede_instance = get_list_workers(prefix='ede')
         worker_list = []
         for l in list_workers:
             worker = {}
@@ -373,7 +374,14 @@ class RQWorkers(Resource, MethodResource):
             worker['pid'] = int(pid)
             worker['status'] = check_pid(pid)
             worker_list.append(worker)
-        return jsonify({'workers': worker_list})
+        for e in list_ede_instance:
+            ede_instance = {}
+            pid = get_pid_from_file(e)
+            ede_instance['id'] = e.split('/')[-1].split('.')[0].split('_')[-1]
+            ede_instance['pid'] = int(pid)
+            ede_instance['status'] = check_pid(pid)
+            worker_list.append(ede_instance)
+        return jsonify({'workers': worker_list, 'ede_instances': list_ede_instance})
 
     def post(self):
         list_workers = get_list_workers()
@@ -414,8 +422,11 @@ class RQWorkers(Resource, MethodResource):
 
     def delete(self):
         list_workers = get_list_workers()
+        list_ede = get_list_workers(prefix='ede')
         pid_dict = {}
+        pid_ede_dict = {}
         failed_lst = []
+        failed_ede_lst = []
         for worker in list_workers:
             pid = get_pid_from_file(worker)
             pid_dict[worker.split('/')[-1].split('.')[0]] = pid
@@ -432,16 +443,34 @@ class RQWorkers(Resource, MethodResource):
             # cleanup pid files
             log.info(f"Cleaning up pid file for worker {worker}")
             clean_up_pid(worker)
-        if failed_lst:
+        # kill detached EDE processes
+        for e in list_ede:
+            pid = get_pid_from_file(e)
+            pid_dict[e.split('/')[-1].split('.')[0]] = pid
+            try:
+                kill_pid(pid)
+            except Exception as inst:
+                log.error(f"Failed to stop pid {pid} with {inst}, deleting file")
+                delete_pid_file(e)
+            # check if pid is killed
+            if not check_pid(pid):
+                log.error(f"Failed to stop ede instance with pid {pid}")
+                failed_ede_lst.append(pid)
+            # cleanup pid files
+            log.info(f"Cleaning up pid file for detached ede {e}")
+            clean_up_pid(e)
+        if failed_lst or failed_ede_lst:
             resp = jsonify({
                 'message': f'failed to stop rq workers',
-                'worker_pids': failed_lst
+                'worker_pids': failed_lst,
+                'ede_pids': failed_ede_lst
             })
             resp.status_code = 500
             return resp
         resp = jsonify({
             'message': 'all rq workers stopped',
-            'workers': pid_dict
+            'workers': pid_dict,
+            'ede_instances': pid_ede_dict
         })
         resp.status_code = 200
         return resp
