@@ -97,7 +97,7 @@ def check_pid(pid):
 
 def get_list_workers():
     etc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etc')
-    g_dir = "{}/*.pid".format(etc_path)
+    g_dir = "{}/worker*.pid".format(etc_path)
     list_workers = []
     for name in glob.glob(g_dir):
         list_workers.append(name)
