@@ -13,7 +13,7 @@ def ede_log_handler(ede_log,
     while True:
         line = ede_log.readline()
         if not line:
-            time.sleep(0.1)
+            time.sleep(1)
             continue
         job.meta['progress'] = line.strip()
         job.save_meta()
