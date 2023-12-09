@@ -760,7 +760,13 @@ class DataFormatter:
             df_list.append(self.sr_pmds_to_df(resp))
         # Check if all dataframes have the same shape
         if all([set(df_list[0].shape == set(df.shape) for df in df_list)]):
-            df = pd.concat(df_list, axis=1)
+            try:
+                df = pd.concat(df_list, axis=1)
+            except Exception as inst:
+                logger.error('[{}] : [ERROR] PMDS query dataframe concat failed with {} and {}, returning empty dataframe ...'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S'), type(inst), inst.args))
+                df = pd.DataFrame()
+                return df
             df = self.__sr_pmds_df_index_fix(df)
             if checkpoint:
                 if detect:
