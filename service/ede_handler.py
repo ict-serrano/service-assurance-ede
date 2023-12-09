@@ -12,8 +12,15 @@ def ede_log_handler(ede_log,
     # start read loop
     while True:
         line = ede_log.readline()
-        if not line:
-            time.sleep(1)
+        try:
+            if not line:
+                time.sleep(1)
+                job.meta['progress'] = "Waiting for log to start"
+                job.save_meta()
+                continue
+        except Exception as e:
+            job.meta['progress'] = "Error reading log file"
+            job.save_meta()
             continue
         job.meta['progress'] = line.strip()
         job.save_meta()
