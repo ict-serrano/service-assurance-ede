@@ -14,17 +14,19 @@ def ede_log_handler(ede_log,
         line = ede_log.readline()
         try:
             if not line:
-                time.sleep(1)
-                job.meta['progress'] = "Waiting for log to start"
-                job.save_meta()
+                time.sleep(0.5)
+                # job.meta['progress'] = "Waiting for log to start"
+                # job.save_meta()
                 continue
         except Exception as e:
-            job.meta['progress'] = "Error reading log file"
+            job.meta['progress'] = "Waiting for EDE log ... "
             job.save_meta()
             continue
         job.meta['progress'] = line.strip()
         job.save_meta()
         if check_pid(pid) == 0:
+            job.meta['progress'] = f"{job.get_id} stopped, pid {pid} not found"
+            job.save_meta()
             break
 
 def ede_pid_handler(job_id, ede_pid):
