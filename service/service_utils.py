@@ -150,7 +150,7 @@ def readConf(file):
         raise Exception("Config not found!")
     return conf
 
-def check_for_detached_process(list_job_id):
+def check_for_detached_process(list_job_id, log):
     etc_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'etc')
     detached_proc = []
     for job_id in list_job_id:
@@ -158,7 +158,12 @@ def check_for_detached_process(list_job_id):
             with open(name, 'r') as f:
                 pid = f.readline()
             if not check_pid(int(pid)):
-                os.kill(int(pid), signal.SIGTERM)
-                os.remove(name)
+                try:
+                    os.kill(int(pid), signal.SIGTERM)
+                    # os.remove(name)
+                except Exception as e:
+                    log.error(f'Error while stopping jobs with {type(e)} and {e}')
+                finally:
+                    os.remove(name)
             detached_proc.append(job_id)
     return detached_proc

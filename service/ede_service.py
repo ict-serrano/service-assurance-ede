@@ -479,8 +479,8 @@ class RQEngineJobQueueStatus(Resource, MethodResource):
             elif job.is_queued:
                 jqueued.append(rjob)
         # check for detached EDE processes
-        detached_failed = check_for_detached_process(failed)
-        detached_finished = check_for_detached_process(finished)
+        detached_failed = check_for_detached_process(failed, log)
+        detached_finished = check_for_detached_process(finished, log)
         resp_dict = {
             'started': started,
             'finished': finished,
@@ -526,7 +526,7 @@ class RQEngineJobQueueStatus(Resource, MethodResource):
             started_registry.remove(rjob, delete_job=True)
 
         # kill all EDE processes
-        check_for_detached_process(jobs)
+        check_for_detached_process(jobs, log)
 
         resp = jsonify(
             {
@@ -570,7 +570,7 @@ class RQEngineJobStatus(Resource, MethodResource):
         send_stop_job_command(r_connection, job_id)
         job.delete()
         # kill detached EDE process
-        check_for_detached_process([job_id])
+        check_for_detached_process([job_id], log)
 
         response = jsonify({'status': 'deleted',
                             'job_id': job_id})
