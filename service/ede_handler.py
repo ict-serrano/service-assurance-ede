@@ -14,12 +14,12 @@ def ede_log_handler(ede_log,
         line = ede_log.readline()
         try:
             if not line:
-                time.sleep(0.5)
+                time.sleep(1)
                 # job.meta['progress'] = "Waiting for log to start"
                 # job.save_meta()
                 continue
         except Exception as e:
-            job.meta['progress'] = "Waiting for EDE log ... "
+            job.meta['progress'] = f"Waiting for EDE log with {type(e)} and {e.args}"
             job.save_meta()
             continue
         job.meta['progress'] = line.strip()
