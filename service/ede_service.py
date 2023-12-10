@@ -367,6 +367,7 @@ class RQWorkers(Resource, MethodResource):
         list_workers = get_list_workers()
         list_ede_instance = get_list_workers(prefix='ede')
         worker_list = []
+        ede_list = []
         for l in list_workers:
             worker = {}
             pid = get_pid_from_file(l)
@@ -380,8 +381,8 @@ class RQWorkers(Resource, MethodResource):
             ede_instance['id'] = e.split('/')[-1].split('.')[0].split('_')[-1]
             ede_instance['pid'] = int(pid)
             ede_instance['status'] = check_pid(pid)
-            worker_list.append(ede_instance)
-        return jsonify({'workers': worker_list, 'ede_instances': list_ede_instance})
+            ede_list.append(ede_instance)
+        return jsonify({'workers': worker_list, 'ede_instances': ede_list})
 
     def post(self):
         list_workers = get_list_workers()
@@ -446,7 +447,7 @@ class RQWorkers(Resource, MethodResource):
         # kill detached EDE processes
         for e in list_ede:
             pid = get_pid_from_file(e)
-            pid_dict[e.split('/')[-1].split('.')[0]] = pid
+            pid_ede_dict[e.split('/')[-1].split('.')[0]] = pid
             try:
                 kill_pid(pid)
             except Exception as inst:
