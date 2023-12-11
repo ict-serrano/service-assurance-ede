@@ -757,6 +757,10 @@ class DataFormatter:
         """
         df_list = []
         for resp in resp_list:
+            if not resp:
+                logger.error('[{}] : [WARN] PMDS query response is empty...'.format(
+                    datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S')))
+                return pd.DataFrame()
             df_list.append(self.sr_pmds_to_df(resp))
         # Check if all dataframes have the same shape
         if all([set(df_list[0].shape == set(df.shape) for df in df_list)]):

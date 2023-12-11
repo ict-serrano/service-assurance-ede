@@ -680,7 +680,8 @@ class EDEngine:
             self.cepQueryReturn = self.getCEP(detect=detect)
         return self.systemReturn, self.yarnReturn, self.reducemetrics, self.mapmetrics, self.mrapp, self.sparkReturn, self.stormReturn, self.cassandraReturn, self.mongoReturn, self.userQueryReturn, self.cepQueryReturn
 
-    def filterData(self, df,
+    def filterData(self,
+                   df,
                    m=False,
                    df_index='time',
                    detect=False):
@@ -690,6 +691,9 @@ class EDEngine:
         :return: ->  filtred df
         '''
         checkpoint = str2Bool(self.checkpoint)
+        if df.empty:
+            logger.error('[%s] : [ERROR] Empty dataframe skipping format ...',)
+            return df
         if self.cfilter is None:
             logger.info('[%s] : [INFO] Column filter not set skipping',
                                             datetime.fromtimestamp(time.time()).strftime(log_format))
@@ -767,7 +771,7 @@ class EDEngine:
         logger.info('[{}] : [INFO] Filtered data shape {}'.format(
                 datetime.fromtimestamp(time.time()).strftime(log_format), df.shape))
         if df.shape[0] == 0:
-            logger.error('[{}] : [ERROR] Empty dataframe rezulted after filtering! Exiting!'.format(
+            logger.error('[{}] : [ERROR] Empty dataframe after filtering! Exiting!'.format(
                     datetime.fromtimestamp(time.time()).strftime(log_format)))
             sys.exit(1)
         return df
